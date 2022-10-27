@@ -8,8 +8,6 @@
 #' @param class Model for prediction. \code{1} MARS Boost without smoothing procedure.\code{2} MARS Boost with smoothing procedure..
 #'
 #' @return \code{data.frame} with the predicted values.
-#'
-#' @export
 predict.MARSAdapted <- function(object, newdata, x, class = 1) {
 
   train_names <- object[["data"]][["input_names"]]
@@ -145,41 +143,64 @@ predict.MARSBoost <- function(object, newdata, x, class = 1) {
   } else {
     stop("Class not valid. \n1 - Prediction without smoothing procedure\n2 - Prediction with smoothing procedure\n")
   }
-  
+
   return(predictions)
 }
 
-predict.EATBoost <- function(object, newdata, x) {
-  
+
+
+predict.EATBoost <- function(object, newdata, x, ...) {
+
   train_names <- object[["data"]][["input_names"]]
   test_names <- names(newdata)[x]
-  
+
   if (!identical(sort(train_names), sort(test_names))) {
     stop("Different variable names in training and test sets.")
   }
-  
+
   # Select variables and reorder as in training data
   newdata <- newdata[, x, drop = FALSE][train_names]
   N <- nrow(newdata)
   y <- object[["data"]][["y"]]
-  
+
   num.iterations <- object[["control"]][["num.iterations"]]
   learning.rate <- object[["control"]][["learning.rate"]]
   EAT.models <- object[["EAT.models"]]
   f0 <- object[["f0"]]
-  
+
   # Get predictions
   predictions <- matrix(rep(f0[1,1],N),ncol = length(y), nrow = N)
-  
+
   for (it in 1:length(EAT.models)) {
     model.q <- MARS_models[[it]]
     pred.q <- predict(model.q, newdata, x)
     predictions <- predictions + learning.rate*pred.q
   }
-  
+
   return(predictions)
 }
 
 
+#' @title Model Prediction for DEA
+#'
+#' @description This function predicts the expected output by a \code{MARSBoost} object.
+#'
+#' @param object A \code{MARSBoost} object.
+#' @param newdata \code{data.frame}. Set of input variables to predict on.
+#' @param x Inputs index.
+#' @param measure Model for prediction. \code{1} MARS Boost without smoothing.\code{2} MARS Boost with smoothing.
+#'
+#' @return \code{data.frame} with the predicted values.
+#'
+#' @export
+predict.DEA <- function(object, newdata, x, measure = "rad.out") {
+
+  if (measure == "rad.out") {
+    return(object[["pred"]])
+  } else {
+    stop("Measure not valid.\nValid measures are: rad.out")
+  }
+
+}
 
 

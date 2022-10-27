@@ -6,6 +6,8 @@
 #' @param yPred Vector of predicted values.
 #'
 #' @return Mean Squared Error.
+#'
+#' @export
 mse <- function(y, yPred){
 
   error <- sum((y - yPred) ^ 2) / length(y)

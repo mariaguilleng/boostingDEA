@@ -21,7 +21,8 @@ MARSAdapted_object(
 )
 }
 \arguments{
-\item{data}{\code{data.frame} or \code{matrix} containing the variables in the model.}
+\item{data}{\code{data.frame} or \code{matrix} containing the variables in
+the model.}
 
 \item{x}{Column input indexes in \code{data}.}
 
@@ -29,27 +30,36 @@ MARSAdapted_object(
 
 \item{rownames}{\code{string}. Data rownames.}
 
-\item{nterms}{Maximum number of terms created by the forward algorithm (before pruning).}
+\item{nterms}{Maximum number of terms created by the forward algorithm .}
 
 \item{Kp}{Maximum degree of interaction allowed. Default is \code{1}.}
 
-\item{d}{Generalized Cross Validation (GCV) penalty per knot. Default is \code{2}. If set to \code{-1}, \code{GCV = RSS / n}.}
+\item{d}{Generalized Cross Validation (GCV) penalty per knot. Default is
+\code{2}. If set to \code{-1}, \code{GCV = RSS / n}.}
 
-\item{err_red}{Minimun reduced error rate for the addition of two new basis functions. Default is \code{0.01}.}
+\item{err_red}{Minimun reduced error rate for the addition of two new basis
+functions. Default is \code{0.01}.}
 
-\item{minspan}{Minimum number of observations between knots. When \code{minspan = 0} (default), it is calculated as in Friedman's MARS paper section 3.8 with alpha = 0.05.}
+\item{minspan}{Minimum number of observations between knots. When
+\code{minspan = 0} (default), it is calculated as in Friedman's MARS paper
+section 3.8 with alpha = 0.05.}
 
-\item{endspan}{Minimum number of observations before the first and after the final knot. When \code{endspan = 0} (default), it is calculated as in Friedman's MARS paper section 3.8 with alpha = 0.05.}
+\item{endspan}{Minimum number of observations before the first and after the
+final knot. When \code{endspan = 0} (default), it is calculated as in
+Friedman's MARS paper section 3.8 with alpha = 0.05.}
 
 \item{na.rm}{\code{logical}. If \code{TRUE}, \code{NA} rows are omitted.}
 
-\item{MARS.Forward}{The Multivariate Adaptive Frontier Splines model after applying the forward algorithm without the smoothing procedures}
+\item{MARS.Forward}{The Multivariate Adaptive Frontier Splines model after
+applying the forward algorithm without the smoothing procedures}
 
-\item{MARS.Forward.Smooth}{The Multivariate Adaptive Frontier Splines model after applying the forward algorithm after appling the smoothing procedure}
+\item{MARS.Forward.Smooth}{The Multivariate Adaptive Frontier Splines model
+after applying the forward algorithm after appling the smoothing procedure}
 }
 \value{
 A \code{MARSAdapted} object.
 }
 \description{
-This function saves information about the adapetd Multivariate Adapative Frontier Splines model.
+This function saves information about the adapetd Multivariate
+Adapative Frontier Splines model.
 }

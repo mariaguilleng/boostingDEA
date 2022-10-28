@@ -7,19 +7,23 @@
 CreateBF(data, xi, knt, B, p)
 }
 \arguments{
-\item{data}{\code{data.frame} or \code{matrix} containing the variables in the model.}
+\item{data}{\code{data.frame} or \code{matrix} containing the variables in
+the model.}
 
 \item{xi}{\code{integer}. Variable index of the new basis function(s).}
 
 \item{knt}{Knot for creating the new basis function(s).}
 
-\item{B}{\code{matrix} of basis functions on which the new pair of functions is added.}
+\item{B}{\code{matrix} of basis functions on which the new pair of functions
+is added.}
 
 \item{p}{\code{integer}. Parent basis function index.}
 }
 \value{
-Matrix of basis function (\code{B}) updated with the new basis functions.
+Matrix of basis function (\code{B}) updated with the new basis
+functions.
 }
 \description{
-This function generates two new basis functions from a variable and a knot.
+This function generates two new basis functions from a variable
+and a knot.
 }

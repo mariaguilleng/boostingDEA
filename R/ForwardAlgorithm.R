@@ -1,6 +1,7 @@
 #' @title Mean Squared Error
 #'
-#' @description This function computes the mean squared error between two numeric vectors.
+#' @description This function computes the mean squared error between two
+#' numeric vectors.
 #'
 #' @param y Vector of actual data.
 #' @param yPred Vector of predicted values.
@@ -8,45 +9,51 @@
 #' @return Mean Squared Error.
 #'
 #' @export
-mse <- function(y, yPred){
-
-  error <- sum((y - yPred) ^ 2) / length(y)
+mse <- function(y, yPred) {
+  error <- sum((y - yPred)^2) / length(y)
   return(round(error, 4))
 }
 
 #' @title Add a new pair of Basis Functions
 #'
-#' @description This function adds the best pair of basis functions to the model.
+#' @description This function adds the best pair of basis functions to the model
 #'
-#' @param data data \code{data.frame} or \code{matrix} containing the variables in the model.
+#' @param data data \code{data.frame} or \code{matrix} containing the variables
+#' in the model.
 #' @param x Column input indexes in \code{data}.
 #' @param y Column output indexes in \code{data}.
-#' @param ForwardModel \code{list} containing the set of basis functions and the B matrix.
+#' @param ForwardModel \code{list} containing the set of basis functions and the
+#' B matrix.
 #' @param knots_list \code{list} containing the set of selected knots.
 #' @param Kp Maximum degree of interaction allowed.
-#' @param minspan \code{integer}. Minimum number of observations between knots. When \code{minspan = 0}, it is calculated as in Friedman's MARS paper section 3.8 with alpha = 0.05.
-#' @param Le \code{integer} Minimum number of observations before the first and after the final knot.
-#' @param linpreds \code{logical}. If \code{TRUE}, predictors can enter linearly.
+#' @param minspan \code{integer}. Minimum number of observations between knots.
+#' When \code{minspan = 0}, it is calculated as in Friedman's MARS paper section
+#' 3.8 with alpha = 0.05.
+#' @param Le \code{integer} Minimum number of observations before the first and
+#' after the final knot.
+#' @param linpreds \code{logical}. If \code{TRUE}, predictors can enter linearly
 #' @param err_min Minimun error in the split.
 #'
 #' @importFrom dplyr %>%
 #'
-#' @return A \code{list} containing the matrix of basis functions (\code{B}), a \code{list} of basis functions (\code{BF}), a \code{list} of selected knots (\code{knots_list}) and the minimun error (\code{err_min}).
-AddBF <- function(data, x, y, ForwardModel, knots_list, Kp, minspan, Le, linpreds, err_min) {
-
-   N <- nrow(data)
+#' @return A \code{list} containing the matrix of basis functions (\code{B}), a
+#' \code{list} of basis functions (\code{BF}), a \code{list} of selected knots
+#' (\code{knots_list}) and the minimun error (\code{err_min}).
+AddBF <- function(data, x, y, ForwardModel, knots_list, Kp, minspan, Le,
+                  linpreds, err_min) {
+  N <- nrow(data)
   nX <- length(x)
 
   # Set of basis functions
   BF_list <- ForwardModel[["BF"]]
-      nBF <- length(BF_list)
+  nBF <- length(BF_list)
 
   # Matrix of basis functions
   B <- ForwardModel[["B"]]
 
   signal <- 0 # improvement
 
-  for (p in 1:nBF){
+  for (p in 1:nBF) {
 
     # Basis function for the division
     bf <- BF_list[[p]]
@@ -57,7 +64,7 @@ AddBF <- function(data, x, y, ForwardModel, knots_list, Kp, minspan, Le, linpred
 
     # If the number of variables exceeds the maximum allowed degree,
     # the division cannot be carried out by this basis function.
-    if(length(bf[['xi']]) >= Kp && !all(bf[['xi']] == -1)) next
+    if (length(bf[["xi"]]) >= Kp && !all(bf[["xi"]] == -1)) next
 
     for (xi in 1:nX) {
 
@@ -69,7 +76,7 @@ AddBF <- function(data, x, y, ForwardModel, knots_list, Kp, minspan, Le, linpred
       if (any(bf[["xi"]] == xi)) next
 
       # Observations in the space.
-      index <- bf[['Bp']] != 0
+      index <- bf[["Bp"]] != 0
 
       # ===================== #
       # Condition III: L & Le #
@@ -79,9 +86,8 @@ AddBF <- function(data, x, y, ForwardModel, knots_list, Kp, minspan, Le, linpred
       index[c(1:Le, (length(index) - Le + 1):length(index))] <- FALSE
 
       # Minspan
-      if (minspan == 0){
-        L <- ceiling(- log2(- (1 / (nX * sum(index))) * log(1 - 0.05)) / 2.5)
-
+      if (minspan == 0) {
+        L <- ceiling(-log2(-(1 / (nX * sum(index))) * log(1 - 0.05)) / 2.5)
       } else {
         L <- minspan
       }
@@ -92,7 +98,7 @@ AddBF <- function(data, x, y, ForwardModel, knots_list, Kp, minspan, Le, linpred
         used_indexes <- sapply(knots_list[[xi]], "[[", "index")
         minspan_indexes <- c()
 
-        for (idx in 1:length(used_indexes)){
+        for (idx in 1:length(used_indexes)) {
           # L observations of distance between knots
           ind <- c((used_indexes[idx] - L):(used_indexes[idx] + L))
           minspan_indexes <- append(minspan_indexes, ind)
@@ -125,20 +131,20 @@ AddBF <- function(data, x, y, ForwardModel, knots_list, Kp, minspan, Le, linpred
         y_hat <- New_B %*% coefs
 
         # mse
-          err <- mse(data[, y], y_hat)
+        err <- mse(data[, y], y_hat)
 
         if (err < err_min) {
 
           # Model has improved
-           signal <- 1
+          signal <- 1
           err_min <- err
-           Best_B <- New_B
+          Best_B <- New_B
 
           # index
           observation <- which(data[, xi] == knots[i])
 
           # New pair of basis functions
-          bf1 <- bf2 <-  bf
+          bf1 <- bf2 <- bf
 
           # id
           bf1[["id"]] <- nBF + 1
@@ -152,25 +158,24 @@ AddBF <- function(data, x, y, ForwardModel, knots_list, Kp, minspan, Le, linpred
           bf2[["side"]] <- "L"
 
           # Bp
-          bf1[['Bp']] <- New_B[, ncol(New_B) - 1]
-          bf2[['Bp']] <- New_B[, ncol(New_B)]
+          bf1[["Bp"]] <- New_B[, ncol(New_B) - 1]
+          bf2[["Bp"]] <- New_B[, ncol(New_B)]
 
           # xi
-          if (all(bf[['xi']] == -1)){
-            bf1[['xi']] <- bf2[['xi']] <- c(xi)
-
+          if (all(bf[["xi"]] == -1)) {
+            bf1[["xi"]] <- bf2[["xi"]] <- c(xi)
           } else {
-            bf1[['xi']] <- bf2[['xi']] <- c(bf[['xi']], xi)
+            bf1[["xi"]] <- bf2[["xi"]] <- c(bf[["xi"]], xi)
           }
 
           # t
           bf1[["t"]] <- bf2[["t"]] <- knots[i]
 
           # R
-          bf1[['R']] <- bf2[['R']] <- err_min
+          bf1[["R"]] <- bf2[["R"]] <- err_min
 
           # alpha
-          bf1[['alpha']] <- bf2[['alpha']] <- coefs
+          bf1[["alpha"]] <- bf2[["alpha"]] <- coefs
         }
       }
     }
@@ -184,28 +189,32 @@ AddBF <- function(data, x, y, ForwardModel, knots_list, Kp, minspan, Le, linpred
 
     # bf2 & bf1 have the same xi and t
     sze_knt_xi <- length(bf1[["xi"]]) # in case of degree > 1 --> to select last xi
-    knots_list[[bf1[["xi"]][sze_knt_xi]]] <- append(knots_list[[bf1[['xi']][sze_knt_xi]]],
-                                                    list(list(t = bf1[["t"]], index = observation)))
+    knots_list[[bf1[["xi"]][sze_knt_xi]]] <- append(
+      knots_list[[bf1[["xi"]][sze_knt_xi]]],
+      list(list(t = bf1[["t"]], index = observation))
+    )
 
     return(list(Best_B, BF_list, knots_list, err_min))
-
   } else {
-
     return(list(B, BF_list, knots_list, err_min))
   }
 }
 
 #' @title Generate a new pair of Basis Functions
 #'
-#' @description This function generates two new basis functions from a variable and a knot.
+#' @description This function generates two new basis functions from a variable
+#' and a knot.
 #'
-#' @param data \code{data.frame} or \code{matrix} containing the variables in the model.
+#' @param data \code{data.frame} or \code{matrix} containing the variables in
+#' the model.
 #' @param xi \code{integer}. Variable index of the new basis function(s).
 #' @param knt Knot for creating the new basis function(s).
-#' @param B \code{matrix} of basis functions on which the new pair of functions is added.
+#' @param B \code{matrix} of basis functions on which the new pair of functions
+#' is added.
 #' @param p \code{integer}. Parent basis function index.
 #'
-#' @return Matrix of basis function (\code{B}) updated with the new basis functions.
+#' @return Matrix of basis function (\code{B}) updated with the new basis
+#' functions.
 CreateBF <- function(data, xi, knt, B, p) {
 
   # Create (xi-t)+ and (t-xi)+
@@ -222,9 +231,11 @@ CreateBF <- function(data, xi, knt, B, p) {
   return(B)
 }
 
-#' @title Estimate Coefficients in Multivariate Adaptive Frontier Splines during Forward Procedure.
+#' @title Estimate Coefficients in Multivariate Adaptive Frontier Splines during
+#' Forward Procedure.
 #'
-#' @description This function solves a Quadratic Programming Problem to obtain a set of coefficients.
+#' @description This function solves a Quadratic Programming Problem to obtain a
+#' set of coefficients.
 #'
 #' @param B \code{matrix} of basis functions.
 #' @param y Output \code{vector} in data.
@@ -232,8 +243,7 @@ CreateBF <- function(data, xi, knt, B, p) {
 #' @importFrom Rglpk Rglpk_solve_LP
 #'
 #' @return \code{vector} with the coefficients estimated.
-EstimCoeffsForward <- function(B, y){
-
+EstimCoeffsForward <- function(B, y) {
   n <- nrow(B)
   p <- ncol(B)
 
@@ -250,7 +260,7 @@ EstimCoeffsForward <- function(B, y){
   # A #
   # = #
   # Equality constraints: y_hat - e = y
-  Amat1 <- cbind(B, diag(rep(- 1, n), n))
+  Amat1 <- cbind(B, diag(rep(-1, n), n))
 
   # Concavity
   Amat2 <- matrix(0, nrow = (p - 1) / 2, ncol = p + n)
@@ -258,18 +268,18 @@ EstimCoeffsForward <- function(B, y){
   pairs <- 1:p
   pairs <- pairs[lapply(pairs, "%%", 2) == 0]
 
-  for (i in pairs){
-    Amat2[i / 2, c(i, i + 1)] <- - 1
+  for (i in pairs) {
+    Amat2[i / 2, c(i, i + 1)] <- -1
   }
 
   # Increasing monotony
-     a0 <- rep(0, p - 1)
-   alps <- diag(x = c(1, - 1), p - 1)
-   mat0 <- matrix(0, p - 1, n)
+  a0 <- rep(0, p - 1)
+  alps <- diag(x = c(1, -1), p - 1)
+  mat0 <- matrix(0, p - 1, n)
 
   Amat3 <- cbind(a0, alps, mat0)
 
-   Amat <- rbind(Amat1, Amat2, Amat3)
+  Amat <- rbind(Amat1, Amat2, Amat3)
 
   # = #
   # b #
@@ -286,11 +296,11 @@ EstimCoeffsForward <- function(B, y){
 
   # LP
   # for(i in 1:n){
-    # add.constraint(lps, xt = Amat[i, ], "=",  rhs = bvec[i])
+  # add.constraint(lps, xt = Amat[i, ], "=",  rhs = bvec[i])
   # }
 
   # for(i in (n + 1):nrow(Amat)){
-    # add.constraint(lps, xt = Amat[i, ], ">=",  rhs = bvec[i])
+  # add.constraint(lps, xt = Amat[i, ], ">=",  rhs = bvec[i])
   # }
 
   # set.bounds(lps, lower = c(rep(- Inf, p), upper = rep(0, n)))

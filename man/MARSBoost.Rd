@@ -21,7 +21,8 @@ MARSBoost_object(
 )
 }
 \arguments{
-\item{data}{\code{data.frame} or \code{matrix} containing the variables in the model.}
+\item{data}{\code{data.frame} or \code{matrix} containing the variables
+in the model.}
 
 \item{x}{Column input indexes in \code{data}.}
 
@@ -29,17 +30,23 @@ MARSBoost_object(
 
 \item{num.iterations}{Maximum number of iterations the algorithm will perform}
 
-\item{learning.rate}{Learning rate that control overfitting of the algorithm. Value must be in (0,1]}
+\item{learning.rate}{Learning rate that control overfitting of the algorithm.
+Value must be in (0,1]}
 
-\item{num.terms}{Maximum number of reflected pairs created by the forward algorithm of MARS.}
+\item{num.terms}{Maximum number of reflected pairs created by the forward
+algorithm of MARS.}
 
-\item{MARS.models}{List of the adapted forward MARS models created in each iterations}
+\item{MARS.models}{List of the adapted forward MARS models created in each
+iterations}
 
-\item{f0}{Initial predictions of the model (they correspond to maximum value of each output variable)}
+\item{f0}{Initial predictions of the model (they correspond to maximum value
+of each output variable)}
 
-\item{prediction}{Final predictions of the original data without applying the smoothing procedure}
+\item{prediction}{Final predictions of the original data without applying
+the smoothing procedure}
 
-\item{prediction.smooth}{Final predictions of the original data after applying the smoothing procedure}
+\item{prediction.smooth}{Final predictions of the original data after
+applying the smoothing procedure}
 }
 \value{
 A \code{MARSBoost} object.
@@ -47,7 +54,12 @@ A \code{MARSBoost} object.
 A \code{MARSBoost} object.
 }
 \description{
-This function estimates a production frontier satisfying some classical production theory axioms, such as monotonicity and concavity, which is based upon the adaptation of the machine learning technique known as LS-boosting using adapted Multivariate Adaptive Regression Splines (MARS) as base learners.
+This function estimates a production frontier satisfying some
+classical production theory axioms, such as monotonicity and concavity,
+which is based upon the adaptation of the machine learning technique known
+ as LS-boosting using adapted Multivariate Adaptive Regression Splines (MARS)
+ as base learners.
 
-This function saves information about the LS-Boosted Multivariate Adapative Frontier Splines model.
+This function saves information about the LS-Boosted
+Multivariate Adapative Frontier Splines model.
 }

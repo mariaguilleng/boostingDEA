@@ -19,25 +19,33 @@ MARSAdapted(
 )
 }
 \arguments{
-\item{data}{\code{data.frame} or \code{matrix} containing the variables in the model.}
+\item{data}{\code{data.frame} or \code{matrix} containing the variables in
+the model.}
 
 \item{x}{Column input indexes in \code{data}.}
 
 \item{y}{Column output indexes in \code{data}.}
 
-\item{nterms}{Maximum number of reflected pairs created by the forward algorithm of MARS.}
+\item{nterms}{Maximum number of reflected pairs created by the forward
+algorithm of MARS.}
 
 \item{Kp}{Maximum degree of interaction allowed. Default is \code{1}.}
 
-\item{d}{Generalized Cross Validation (GCV) penalty per knot. Default is \code{2}. If it is set to \code{-1}, \code{GCV = RSS / n}.}
+\item{d}{Generalized Cross Validation (GCV) penalty per knot. Default is
+\code{2}. If it is set to \code{-1}, \code{GCV = RSS / n}.}
 
-\item{err_red}{Minimum reduced error rate for the addition of two new basis functions. Default is \code{0.01}.}
+\item{err_red}{Minimum reduced error rate for the addition of two new basis
+functions. Default is \code{0.01}.}
 
-\item{minspan}{Minimum number of observations between knots. When \code{minspan = 0} (default), it is calculated as in Friedman's MARS paper section 3.8 with alpha = 0.05.}
+\item{minspan}{Minimum number of observations between knots. When
+\code{minspan = 0} (default), it is calculated as in Friedman's MARS paper
+section 3.8 with alpha = 0.05.}
 
-\item{endspan}{Minimum number of observations before the first and after the final knot. When \code{endspan = 0} (default), it is calculated as in Friedman's MARS paper section 3.8 with alpha = 0.05.}
+\item{endspan}{Minimum number of observations before the first and after the
+final knot. When \code{endspan = 0} (default), it is calculated as in
+Friedman's MARS paper section 3.8 with alpha = 0.05.}
 
-\item{linpreds}{\code{logical}. If \code{TRUE}, predictors can enter linearly.}
+\item{linpreds}{\code{logical}. If \code{TRUE}, predictors can enter linearly}
 
 \item{na.rm}{\code{logical}. If \code{TRUE}, \code{NA} rows are omitted.}
 }
@@ -45,5 +53,7 @@ MARSAdapted(
 An \code{AdaptedMARS} object.
 }
 \description{
-Create an adapted version of Multivariate Adaptive Regression Splines (MARS) model to estimate a production frontier satisfying some classical production theory axioms, such as monotonicity and concavity.
+Create an adapted version of Multivariate Adaptive Regression
+Splines (MARS) model to estimate a production frontier satisfying some
+classical production theory axioms, such as monotonicity and concavity.
 }

@@ -7,7 +7,8 @@
 preProcess(data, x, y, na.rm = TRUE)
 }
 \arguments{
-\item{data}{\code{data.frame} or \code{matrix} containing the variables in the model.}
+\item{data}{\code{data.frame} or \code{matrix} containing the variables
+in the model.}
 
 \item{x}{Column input indexes in \code{data}.}
 
@@ -19,5 +20,6 @@ preProcess(data, x, y, na.rm = TRUE)
 It returns a \code{data.frame} in the required format.
 }
 \description{
-This function arranges the data in the required format and displays error messages.
+This function arranges the data in the required format and
+displays error messages.
 }

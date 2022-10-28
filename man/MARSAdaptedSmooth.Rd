@@ -7,7 +7,8 @@
 MARSAdaptedSmooth(data, nX, knots, y)
 }
 \arguments{
-\item{data}{\code{data.frame} or \code{matrix} containing the variables in the model.}
+\item{data}{\code{data.frame} or \code{matrix} containing the variables in
+the model.}
 
 \item{nX}{number of inputs in \code{data}.}
 
@@ -16,7 +17,9 @@ MARSAdaptedSmooth(data, nX, knots, y)
 \item{y}{output indexes in \code{data}.}
 }
 \value{
-List containing the set of knots from backward (\code{knots}), the new cubic knots (\code{cubic_knots}) and the set of coefficients (\code{alpha}).
+List containing the set of knots from backward (\code{knots}),
+the new cubic knots (\code{cubic_knots}) and the set of coefficients
+(\code{alpha}).
 }
 \description{
 This function smoothes the Forward MARS predictor.

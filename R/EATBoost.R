@@ -11,24 +11,29 @@
 #' @param learning.rate Learning rate that control the overfitting of the algorithm. Value must be in (0,1]
 #' @param num.leaves Maximum number of reflected pairs created by the forward algorithm of MARS.
 #'
+#' @importFrom stats predict
+#' @importFrom eat EAT
+#'
 #' @return A \code{EATBoost} object.
 #'
 #' @export
 EATBoost <- function(data, x, y, num.iterations, num.leaves, learning.rate) {
-
-  if (!is.null(num.iterations) && num.iterations < 1)
+  if (!is.null(num.iterations) && num.iterations < 1) {
     stop("num.iterations = ", num.iterations, "not valid. Number of iterations must be greater than 1")
-  if (!is.null(learning.rate) && (learning.rate <= 0 || learning.rate > 1))
+  }
+  if (!is.null(learning.rate) && (learning.rate <= 0 || learning.rate > 1)) {
     stop("learning.rate = ", learning.rate, "not valid. Learning rate must in (0,1]")
-  if (!is.null(num.leaves) && num.leaves < 2)
+  }
+  if (!is.null(num.leaves) && num.leaves < 2) {
     stop("num.leaves = ", num.leaves, "not valid. Maximum number of leaves at each iteration must be greater than or equal to 2")
+  }
 
-  #===========#
+  # ===========#
   # VARIABLES #
-  #===========#
+  # ===========#
 
-  #Prepocess
-  data <- preProcess(data,x,y)
+  # Prepocess
+  data <- preProcess(data, x, y)
 
   # Samples in data
   N <- nrow(data)
@@ -42,19 +47,19 @@ EATBoost <- function(data, x, y, num.iterations, num.leaves, learning.rate) {
   y <- (nX + 1):ncol(data)
 
   # pseudo-residuals
-  residuals <- matrix(0,ncol = nY, nrow = nrow(data))
+  residuals <- matrix(0, ncol = nY, nrow = nrow(data))
 
   # list of models created in each iterations
   EAT.models <- list()
 
-  #===========#
+  # ===========#
   # FIT MODEL #
-  #===========#
+  # ===========#
 
   browser()
 
   # initial prediction
-  f0 <- matrix(rep(max(data[, y]),N),ncol = nY, nrow = nrow(data))
+  f0 <- matrix(rep(max(data[, y]), N), ncol = nY, nrow = nrow(data))
   prediction <- f0
 
   # prediction at each iteratrion
@@ -64,49 +69,54 @@ EATBoost <- function(data, x, y, num.iterations, num.leaves, learning.rate) {
     residuals <- data[, y] - prediction
 
     # Fit forward MARS to pseudo-residuals
-    data.q <- as.data.frame(cbind(data[,x],residuals))
+    data.q <- as.data.frame(cbind(data[, x], residuals))
     colnames(data.q) <- colnames(data)
     model.q <- EAT(
       data = data.q,
       x = x,
       y = y,
-      max.leaves = num.leaves)
+      max.leaves = num.leaves
+    )
 
     EAT.models[[it]] <- model.q
 
     # Update prediction
     prediction.q <- predict(model.q, data.q, x)
-    prediction <- prediction + learning.rate*prediction.q
-
+    prediction <- prediction + learning.rate * prediction.q
   }
 
   # EATBoost object
-  EATBoost <- EATBoost_object(data, x, y, num.iterations, num.leaves,
-                               learning.rate, EAT.models, f0, prediction)
+  EATBoost <- EATBoost_object(
+    data, x, y, num.iterations, num.leaves,
+    learning.rate, EAT.models, f0, prediction
+  )
 
   return(EATBoost)
-
 }
 
 
 EATBoost_object <- function(data, x, y, num.iterations, num.leaves,
                             learning.rate, EAT.models, f0, prediction) {
-
-  EATBoost_object <- list("data" = list(df = data,
-                                         x = x,
-                                         y = y,
-                                         input_names = names(data)[x],
-                                         output_names = names(data)[y],
-                                         row_names = rownames(data)),
-                           "control" = list(num.iterations = num.iterations,
-                                            num.leaves = num.leaves,
-                                            learning.rate = learning.rate),
-                           "EAT.models" = EAT.models,
-                           "f0" = f0,
-                           "prediction" = prediction)
+  EATBoost_object <- list(
+    "data" = list(
+      df = data,
+      x = x,
+      y = y,
+      input_names = names(data)[x],
+      output_names = names(data)[y],
+      row_names = rownames(data)
+    ),
+    "control" = list(
+      num.iterations = num.iterations,
+      num.leaves = num.leaves,
+      learning.rate = learning.rate
+    ),
+    "EAT.models" = EAT.models,
+    "f0" = f0,
+    "prediction" = prediction
+  )
 
   class(EATBoost_object) <- "EATBoost"
 
   return(EATBoost_object)
-
 }

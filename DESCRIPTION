@@ -2,8 +2,18 @@ Package: boostingdeaR
 Type: Package
 Title: What the Package Does (Title Case)
 Version: 0.1.0
-Author: Who wrote it
-Maintainer: The package maintainer <yourself@somewhere.net>
+Author: c(
+    person(given = "Maria D.", 
+           family = "Guillen", 
+           role = c("cre", "aut"),
+           email = "maria.guilleng@umh.es",
+           comment = c(ORCID = "0000-0002-2445-5654")),
+    person(given = "Juan", 
+           family = "Aparicio", 
+           role = c("aut"),
+           comment = c(ORCID = "0000-0002-0867-0004"))
+           )
+Maintainer: Maria D. Guillen <maria.guilleng@umh.es>
 Description: More about what it does (maybe more than one line)
     Use four spaces when indenting paragraphs within the Description.
 License: What license is it under?
@@ -13,4 +23,8 @@ RoxygenNote: 7.2.1
 Imports:
     Rglpk,
     dplyr,
-    lpSolveAPI
+    lpSolveAPI,
+    eat,
+    stats
+URL: https://github.com/itsmeryguillen/boostingdeaR
+BugReports: https://github.com/itsmeryguillen/boostingdeaR/issues

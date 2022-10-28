@@ -4,7 +4,7 @@
 \alias{predict.MARSBoost}
 \title{Model Prediction for Boosted Multivariate Adaptive Frontier Splines}
 \usage{
-\method{predict}{MARSBoost}(object, newdata, x, class = 1)
+\method{predict}{MARSBoost}(object, newdata, x, class = 1, ...)
 }
 \arguments{
 \item{object}{A \code{MARSBoost} object.}
@@ -13,11 +13,15 @@
 
 \item{x}{Inputs index.}
 
-\item{class}{Model for prediction. \code{1} MARS Boost without smoothing.\code{2} MARS Boost with smoothing.}
+\item{class}{Model for prediction. \code{1} MARS Boost without smoothing.
+\code{2} MARS Boost with smoothing.}
+
+\item{...}{further arguments passed to or from other methods.}
 }
 \value{
 \code{data.frame} with the predicted values.
 }
 \description{
-This function predicts the expected output by a \code{MARSBoost} object.
+This function predicts the expected output by a \code{MARSBoost}
+object.
 }

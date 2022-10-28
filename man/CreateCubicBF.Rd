@@ -7,7 +7,8 @@
 CreateCubicBF(data, xi, knt, B, side)
 }
 \arguments{
-\item{data}{\code{data.frame} or \code{matrix} containing the variables in the model.}
+\item{data}{\code{data.frame} or \code{matrix} containing the variables in
+the model.}
 
 \item{xi}{Variable index of the new basis function(s).}
 
@@ -21,5 +22,6 @@ CreateCubicBF(data, xi, knt, B, side)
 Matrix of basis functions updated with the new basis functions.
 }
 \description{
-This function generates two new cubic basis functions from a variable and a knot previously created during MARS algorithm.
+This function generates two new cubic basis functions from a
+variable and a knot previously created during MARS algorithm.
 }

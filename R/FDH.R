@@ -1,7 +1,7 @@
-#' @title Data Envelope Analysis model
+#' @title Free Disposal Hull model
 #'
-#' @description This function estimates a production frontier satisfying Data
-#' Envelope Analysis axioms using the radial output measure.
+#' @description This function estimates a production frontier satisfying Free
+#' Disposal HUll axioms using the radial output measure.
 #'
 #' @param data \code{data.frame} or \code{matrix} containing the variables in
 #' the model.
@@ -11,24 +11,24 @@
 #' @importFrom lpSolveAPI make.lp lp.control set.objfn add.constraint set.type
 #' set.bounds get.objective
 #'
-#' @return A \code{DEA} object.
+#' @return A \code{FDH} object.
 #'
 #' @export
-DEA <- function(data, x, y) {
-  result <- predictDEA_BBC_out(data, x, y)
+FDH <- function(data, x, y) {
+  result <- predictFDH_BBC_out(data, x, y)
 
-  # DEA object
-  DEA <- DEA_object(data, x, y, result$pred, result$score)
+  # FDH object
+  FDH <- FDH_object(data, x, y, result$pred, result$score)
 
-  return(DEA)
+  return(FDH)
 }
 
 
-#' @title Create a DEA object
+#' @title Create a FDH object
 #'
-#' @description This function saves information about the DEA model.
+#' @description This function saves information about the FDH model.
 #'
-#' @name DEA
+#' @name FDH
 #'
 #' @param data \code{data.frame} or \code{matrix} containing the variables in
 #' the model.
@@ -37,11 +37,11 @@ DEA <- function(data, x, y) {
 #' @param pred Output predictions using the BBC radial output measure
 #' @param score Efficiency score using the BBC radial output measure
 #'
-#' @return A \code{DEA} object.
+#' @return A \code{FDH} object.
 #'
 #' @export
-DEA_object <- function(data, x, y, pred, score) {
-  DEA_object <- list(
+FDH_object <- function(data, x, y, pred, score) {
+  FDH_object <- list(
     "data" = list(
       df = data,
       x = x,
@@ -54,33 +54,32 @@ DEA_object <- function(data, x, y, pred, score) {
     "score" = score
   )
 
-  class(DEA_object) <- "DEA"
+  class(FDH_object) <- "FDH"
 
-  return(DEA_object)
+  return(FDH_object)
 }
 
 
 
-#' @title Model prediction for DEA
+#' @title Model prediction for FDH
 #'
-#' @description This function predicts the expected output through a DEA model.
+#' @description This function predicts the expected output through a FDH model.
 #'
 #' @param data \code{data.frame} or \code{matrix} containing the new variables
 #' in the model.
 #' @param x Vector. Column input indexes in data.
 #' @param y Vector. Column output indexes in data.
 #' @param dataOriginal \code{data.frame} or \code{matrix} containing the
-#' original
-#' variables used to create the model.
+#' original variables used to create the model.
 #' @param xOriginal Vector. Column input indexes in original data.
 #' @param yOriginal Vector. Column output indexes in original data.
 #'
 #' @importFrom lpSolveAPI make.lp lp.control set.objfn add.constraint set.type
 #' set.bounds get.objective
 #'
-#' @return \code{data.frame} with the the predicted values through a DEA model
+#' @return \code{data.frame} with the the predicted values through a FDH model
 #' and the efficiency score
-predictDEA_BBC_out <- function(data, x, y, dataOriginal = data,
+predictFDH_BBC_out <- function(data, x, y, dataOriginal = data,
                                xOriginal = x, yOriginal = y) {
   if (length(x) != length(xOriginal) || length(y) != length(yOriginal)) {
     stop("Size of inputs or outputs does not match original data sample")
@@ -115,13 +114,15 @@ predictDEA_BBC_out <- function(data, x, y, dataOriginal = data,
     }
     # Constrain 2.3 - phi = 1
     add.constraint(lprec = lps, xt = c(0, rep(1, j)), type = "=", rhs = 1)
+    # Constrain 2.4 - Binary
+    set.type(lps, 2:j + 1, "binary")
     solve(lps)
     scores[d, ] <- get.objective(lps)
   }
 
   # get prediction
-  pred_DEA <- scores * data[, y]
+  pred_FDH <- scores * data[, y]
 
-  result <- data.frame(pred = pred_DEA, score = scores)
+  result <- data.frame(pred = pred_FDH, score = scores)
   return(result)
 }

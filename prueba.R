@@ -13,7 +13,7 @@ library(eat)
 nX <- 1
 x <- 1:nX
 y <- nX+1
-N <- 50
+N <- 100
 seed <- 1234
 data <- CobbDouglas(N,nX)
 
@@ -38,14 +38,24 @@ compare(pred_boost,model_boost$prediction)
 pred_boost_smooth <- predict(model_boost, data, x, class = 2)
 compare(pred_boost_smooth,model_boost$prediction.smooth)
 
-mse(pred_boost, data$yD)
+mse(data$yD, pred_boost)
+mse(data$yD, pred_boost_smooth)
 
 # ==
 # DEA
 # ==
 DEA_model <- DEA(data,x,y)
-pred_DEA <- predict(DEA_model, data, x)
+pred_DEA <- predict(DEA_model, data, x, y)
+compare(pred_DEA,DEA_model$pred)
+mse(data$yD, pred_DEA)
 
+# ==
+# FDH
+# ==
+FDH_model <- FDH(data,x,y)
+pred_FDH <- predict(FDH_model, data, x, y)
+compare(pred_FDH,FDH_model$pred)
+mse(data$yD, pred_FDH)
 
 # ==
 # EATBoost
@@ -68,7 +78,7 @@ pred_DEA <- predict(DEA_model, data, x)
 # =========
 eat_model <- EAT(data, x, y)
 pred_eat <- predict(eat_model, data, x)
-
+mse(data$yD, pred_eat)
 
 # ==
 # PLOT
@@ -80,6 +90,7 @@ dataplt <- data.frame(x = data$x1,
                       pred_boost = pred_boost$y_pred,
                       pred_boost_smooth = pred_boost_smooth$y_pred,
                       pred_dea = pred_DEA,
+                      pred_fdh = pred_FDH,
                       pred_eat = pred_eat$y_pred)
 
 ggplot(dataplt) +
@@ -88,4 +99,5 @@ ggplot(dataplt) +
   geom_line(aes(x = x, y = pred_boost, colour = 'MARSBoost')) +
   geom_line(aes(x = x, y = pred_boost_smooth, colour = 'Smooth')) +
   geom_line(aes(x = x, y = pred_dea, colour = 'DEA')) +
+  geom_line(aes(x = x, y = pred_fdh, colour = 'FDH')) +
   geom_line(aes(x = x, y = pred_eat, colour = 'EAT'))

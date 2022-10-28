@@ -9,11 +9,13 @@ CobbDouglas(N, nX)
 \arguments{
 \item{N}{Sample size.}
 
-\item{nX}{Number of inputs. Possible values: \code{1}, \code{2}, \code{3}, \code{4},\code{5},\code{6}, \code{9}, \code{12} and \code{15}.}
+\item{nX}{Number of inputs. Possible values: \code{1}, \code{2}, \code{3},
+\code{4}, \code{5},\code{6}, \code{9}, \code{12} and \code{15}.}
 }
 \value{
 \code{data.frame} with the simulated data.
 }
 \description{
-This function is used to simulate the data in a single output scenario.
+This function is used to simulate the data in a single output
+scenario.
 }

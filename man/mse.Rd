@@ -15,5 +15,6 @@ mse(y, yPred)
 Mean Squared Error.
 }
 \description{
-This function computes the mean squared error between two numeric vectors.
+This function computes the mean squared error between two
+numeric vectors.
 }

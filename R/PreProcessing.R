@@ -1,8 +1,10 @@
 #' @title Data Pre-processing for Multivariate Adaptive Frontier Splines.
 #'
-#' @description This function arranges the data in the required format and displays error messages.
+#' @description This function arranges the data in the required format and
+#' displays error messages.
 #'
-#' @param data \code{data.frame} or \code{matrix} containing the variables in the model.
+#' @param data \code{data.frame} or \code{matrix} containing the variables
+#' in the model.
 #' @param x Column input indexes in \code{data}.
 #' @param y Column output indexes in \code{data}.
 #' @param na.rm \code{logical} If \code{TRUE}, \code{NA} rows are omitted.
@@ -13,7 +15,7 @@
 preProcess <- function(data, x, y, na.rm = TRUE) {
 
   # x and y well / bad introduced
-  
+
   cols <- 1:length(data)
   if (!(all(x %in% cols))) {
     stop("x index(es) are not in data.")
@@ -27,19 +29,18 @@ preProcess <- function(data, x, y, na.rm = TRUE) {
   # List with variables
   # Matrix
 
-  if (is.list(data) && !is.data.frame(data)){
+  if (is.list(data) && !is.data.frame(data)) {
 
     # Data names?
 
     ifelse(is.null(names(data)),
-           nms <- 1:length(data), # if not 1:x
-           nms <- names(data))
+      nms <- 1:length(data), # if not 1:x
+      nms <- names(data)
+    )
 
-    data <- data.frame(matrix(unlist(data), ncol = length(nms), byrow = F))
+    data <- data.frame(matrix(unlist(data), ncol = length(nms), byrow = FALSE))
     names(data) <- nms
-
   } else if (is.matrix(data) || is.data.frame(data)) {
-
     data <- data.frame(data)
   }
 
@@ -50,13 +51,14 @@ preProcess <- function(data, x, y, na.rm = TRUE) {
   outClass <- varClass[y] %in% c("numeric", "double", "integer")
 
   # Error
-  if (!all(outClass)){
-    stop(paste(names(data)[y][!outClass][1], "is not a numeric or integer vector"))
+  if (!all(outClass)) {
+    stop(paste(names(data)[y][!outClass][1],
+               "is not a numeric or integer vector"))
   }
 
   # Input classes
   # Ordered --> numeric
-  for (i in x){
+  for (i in x) {
     if (is.ordered(data[, i])) {
       data[, i] <- as.numeric(data[, i])
     }
@@ -68,21 +70,22 @@ preProcess <- function(data, x, y, na.rm = TRUE) {
   inpClass <- varClass[x] %in% c("numeric", "double", "integer")
 
   # Error
-  if (!all(inpClass)){
-    stop(paste(names(data)[x][!inpClass][1], "is not a numeric, integer or ordered vector"))
+  if (!all(inpClass)) {
+    stop(paste(names(data)[x][!inpClass][1],
+               "is not a numeric, integer or ordered vector"))
   }
 
   data <- data[, c(x, y)]
 
   # NA values
 
-  if (any(is.na(data))){
-    if (na.rm == T){
+  if (any(is.na(data))) {
+    if (na.rm == TRUE) {
       data <- na.omit(data)
       warning("Rows with NA values have been omitted .\n")
-
     } else {
-      stop("Please, detele or impute NA registers or set na.rm = TRUE to omit them. \n")
+      stop("Please, detele or impute NA registers or set na.rm = TRUE to
+           omit them. \n")
     }
   }
 

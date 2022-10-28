@@ -2,7 +2,8 @@
 % Please edit documentation in R/ForwardAlgorithm.R
 \name{EstimCoeffsForward}
 \alias{EstimCoeffsForward}
-\title{Estimate Coefficients in Multivariate Adaptive Frontier Splines during Forward Procedure.}
+\title{Estimate Coefficients in Multivariate Adaptive Frontier Splines during
+Forward Procedure.}
 \usage{
 EstimCoeffsForward(B, y)
 }
@@ -15,5 +16,6 @@ EstimCoeffsForward(B, y)
 \code{vector} with the coefficients estimated.
 }
 \description{
-This function solves a Quadratic Programming Problem to obtain a set of coefficients.
+This function solves a Quadratic Programming Problem to obtain a
+set of coefficients.
 }

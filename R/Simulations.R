@@ -13,7 +13,7 @@
 #' @return \code{data.frame} with the simulated data.
 #'
 #' @export
-CobbDouglas <- function(N, nX, seed = ) {
+CobbDouglas <- function(N, nX) {
   if (!(nX %in% c(1, 2, 3, 4, 5, 6, 9, 12, 15))) {
     stop(paste(nX, "is not allowed"))
   }

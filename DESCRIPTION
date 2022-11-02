@@ -11,12 +11,13 @@ Author: c(
     person(given = "Juan", 
            family = "Aparicio", 
            role = c("aut"),
+           email = "j.aparicio@umh.es",
            comment = c(ORCID = "0000-0002-0867-0004"))
            )
 Maintainer: Maria D. Guillen <maria.guilleng@umh.es>
 Description: More about what it does (maybe more than one line)
     Use four spaces when indenting paragraphs within the Description.
-License: What license is it under?
+License: AGPL (>= 3)
 Encoding: UTF-8
 LazyData: true
 RoxygenNote: 7.2.1
@@ -25,6 +26,13 @@ Imports:
     dplyr,
     lpSolveAPI,
     eat,
-    stats
+    stats,
+    MLmetrics
 URL: https://github.com/itsmeryguillen/boostingdeaR
 BugReports: https://github.com/itsmeryguillen/boostingdeaR/issues
+Suggests: 
+    knitr,
+    rmarkdown,
+    testthat (>= 3.0.0)
+VignetteBuilder: knitr
+Config/testthat/edition: 3

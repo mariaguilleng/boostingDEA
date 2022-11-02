@@ -2,12 +2,26 @@
 % Please edit documentation in R/EATBoost.R
 \name{EATBoost}
 \alias{EATBoost}
+\alias{EATBoost_object}
 \title{Gradient Tree Boosting}
 \usage{
 EATBoost(data, x, y, num.iterations, num.leaves, learning.rate)
+
+EATBoost_object(
+  data,
+  x,
+  y,
+  num.iterations,
+  num.leaves,
+  learning.rate,
+  EAT.models,
+  f0,
+  prediction
+)
 }
 \arguments{
-\item{data}{\code{data.frame} or \code{matrix} containing the variables in the model.}
+\item{data}{\code{data.frame} or \code{matrix} containing the variables
+in the model.}
 
 \item{x}{Column input indexes in \code{data}.}
 
@@ -15,13 +29,29 @@ EATBoost(data, x, y, num.iterations, num.leaves, learning.rate)
 
 \item{num.iterations}{Maximum number of iterations the algorithm will perform}
 
-\item{num.leaves}{Maximum number of reflected pairs created by the forward algorithm of MARS.}
+\item{num.leaves}{Maximum number of terminal leaves in each tree at each
+iteration.}
 
-\item{learning.rate}{Learning rate that control the overfitting of the algorithm. Value must be in (0,1]}
+\item{learning.rate}{Learning rate that control overfitting of the algorithm.
+Value must be in (0,1]}
+
+\item{EAT.models}{List of the EAT models created in each iterations}
+
+\item{f0}{Initial predictions of the model (they correspond to maximum value
+of each output variable)}
+
+\item{prediction}{Final predictions of the original data}
 }
 \value{
 A \code{EATBoost} object.
+
+A \code{EATBoost} object.
 }
 \description{
-This function estimates a production frontier satisfying some classical production theory axioms, such as monotonicity and concavity, which is based upon the adaptation of the machine learning technique known as LS-boosting using adapted Multivariate Adaptive Regression Splines (MARS) as base learners.
+This function estimates a production frontier satisfying some
+classical production theory axioms, such as monotonicity and
+determinictiness, which is based upon the adaptation of the machine learning
+technique known as Gradient Tree Boosting
+
+This function saves information about the EATBoost model
 }

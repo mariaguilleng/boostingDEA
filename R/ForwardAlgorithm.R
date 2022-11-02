@@ -7,12 +7,11 @@
 #' @param yPred Vector of predicted values.
 #'
 #' @return Mean Squared Error.
-#'
-#' @export
 mse <- function(y, yPred) {
   error <- sum((y - yPred)^2) / length(y)
   return(round(error, 4))
 }
+
 
 #' @title Add a new pair of Basis Functions
 #'

@@ -148,6 +148,51 @@ predict.MARSBoost <- function(object, newdata, x, class = 1, ...) {
 }
 
 
+#' @title Model prediction for EATBoost algorithm
+#'
+#' @description This function predicts the expected output by a \code{EATBoost}
+#' object.
+#'
+#' @param object A \code{EATBoost} object.
+#' @param newdata \code{data.frame}. Set of input variables to predict on.
+#' @param x Inputs index.
+#' @param ... further arguments passed to or from other methods.
+#'
+#' @return \code{data.frame} with the predicted values.
+#'
+#' @export
+predict.EATBoost <- function(object, newdata, x, ...) {
+
+  train_names <- object[["data"]][["input_names"]]
+  test_names <- names(newdata)[x]
+
+  if (!identical(sort(train_names), sort(test_names))) {
+    stop("Different variable names in training and test sets.")
+  }
+
+  # Select variables and reorder as in training data
+  newdata <- newdata[, x, drop = FALSE][train_names]
+  N <- nrow(newdata)
+  y <- object[["data"]][["y"]]
+
+  num.iterations <- object[["control"]][["num.iterations"]]
+  learning.rate <- object[["control"]][["learning.rate"]]
+  EAT.models <- object[["EAT.models"]]
+  f0 <- object[["f0"]]
+
+  # Get predictions
+  predictions <- matrix(rep(f0[1,1],N),ncol = length(y), nrow = N)
+
+  for (it in 1:length(EAT.models)) {
+    model.q <- EAT.models[[it]]
+    pred.q <- predict(model.q, newdata, x)
+    predictions <- predictions + learning.rate*pred.q
+  }
+
+  return(predictions)
+}
+
+
 #' @title Model Prediction for DEA
 #'
 #' @description This function predicts the expected output by a \code{DEA}
@@ -175,6 +220,7 @@ predict.DEA <- function(object, newdata, x, y, measure = "rad.out", ...) {
     stop("Measure not valid.\nValid measures are: rad.out")
   }
 }
+
 
 #' @title Model Prediction for FDH
 #'
@@ -205,62 +251,3 @@ predict.FDH <- function(object, newdata, x, y, measure = "rad.out", ...) {
 }
 
 
-# predict.EATBoost <- function(object, newdata, x, ...) {
-#
-#   train_names <- object[["data"]][["input_names"]]
-#   test_names <- names(newdata)[x]
-#
-#   if (!identical(sort(train_names), sort(test_names))) {
-#     stop("Different variable names in training and test sets.")
-#   }
-#
-#   # Select variables and reorder as in training data
-#   newdata <- newdata[, x, drop = FALSE][train_names]
-#   N <- nrow(newdata)
-#   y <- object[["data"]][["y"]]
-#
-#   num.iterations <- object[["control"]][["num.iterations"]]
-#   learning.rate <- object[["control"]][["learning.rate"]]
-#   EAT.models <- object[["EAT.models"]]
-#   f0 <- object[["f0"]]
-#
-#   # Get predictions
-#   predictions <- matrix(rep(f0[1,1],N),ncol = length(y), nrow = N)
-#
-#   for (it in 1:length(EAT.models)) {
-#     model.q <- MARS_models[[it]]
-#     pred.q <- predict(model.q, newdata, x)
-#     predictions <- predictions + learning.rate*pred.q
-#   }
-#
-#   return(predictions)
-# }predict.EATBoost <- function(object, newdata, x, ...) {
-#
-#   train_names <- object[["data"]][["input_names"]]
-#   test_names <- names(newdata)[x]
-#
-#   if (!identical(sort(train_names), sort(test_names))) {
-#     stop("Different variable names in training and test sets.")
-#   }
-#
-#   # Select variables and reorder as in training data
-#   newdata <- newdata[, x, drop = FALSE][train_names]
-#   N <- nrow(newdata)
-#   y <- object[["data"]][["y"]]
-#
-#   num.iterations <- object[["control"]][["num.iterations"]]
-#   learning.rate <- object[["control"]][["learning.rate"]]
-#   EAT.models <- object[["EAT.models"]]
-#   f0 <- object[["f0"]]
-#
-#   # Get predictions
-#   predictions <- matrix(rep(f0[1,1],N),ncol = length(y), nrow = N)
-#
-#   for (it in 1:length(EAT.models)) {
-#     model.q <- MARS_models[[it]]
-#     pred.q <- predict(model.q, newdata, x)
-#     predictions <- predictions + learning.rate*pred.q
-#   }
-#
-#   return(predictions)
-# }

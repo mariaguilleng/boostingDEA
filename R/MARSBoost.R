@@ -32,10 +32,10 @@ MARSBoost <- function(data, x, y, num.iterations, learning.rate, num.terms) {
     stop("learning.rate = ", learning.rate,
          "not valid. Learning rate must in (0,1]")
   }
-  if (!is.null(num.terms) && num.terms < 2) {
+  if (!is.null(num.terms) && num.terms <= 3) {
     stop("num.terms = ", num.terms,
          "not valid. Maximum number of reflected pairs at each iteration must
-          be greater than or equal to 2")
+          be greater than 3")
   }
 
 

@@ -209,16 +209,11 @@ predict.EATBoost <- function(object, newdata, x, ...) {
 #' \code{rad.out}.
 #'
 #' @export
-predict.DEA <- function(object, newdata, x, y, measure = "rad.out", ...) {
-  if (measure == "rad.out") {
-    result <- predictDEA_BBC_out(
-      newdata, x, y, object[["data"]][["df"]],
-      object[["data"]][["x"]], object[["data"]][["y"]]
-    )
-    return(result$pred)
-  } else {
-    stop("Measure not valid.\nValid measures are: rad.out")
-  }
+predict.DEA <- function(object, newdata, x, y, ...) {
+  scores <- BBC_out(newdata, x, y, object[["data"]][["df"]],
+                    object[["data"]][["x"]], object[["data"]][["y"]])
+  pred <- scores * newdata[, y]
+  return(pred)
 }
 
 
@@ -238,16 +233,12 @@ predict.DEA <- function(object, newdata, x, y, measure = "rad.out", ...) {
 #' \code{rad.out}.
 #'
 #' @export
-predict.FDH <- function(object, newdata, x, y, measure = "rad.out", ...) {
-  if (measure == "rad.out") {
-    result <- predictFDH_BBC_out(
-      newdata, x, y, object[["data"]][["df"]],
-      object[["data"]][["x"]], object[["data"]][["y"]]
-    )
-    return(result$pred)
-  } else {
-    stop("Measure not valid.\nValid measures are: rad.out")
-  }
+predict.FDH <- function(object, newdata, x, y, ...) {
+  scores <- BBC_out(newdata, x, y, object[["data"]][["df"]],
+                    object[["data"]][["x"]], object[["data"]][["y"]],
+                    FDH = TRUE)
+  pred <- scores * newdata[, y]
+  return(pred)
 }
 
 

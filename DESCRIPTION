@@ -2,7 +2,7 @@ Package: boostingdeaR
 Type: Package
 Title: What the Package Does (Title Case)
 Version: 0.1.0
-Author: c(
+Authors@R: c(
     person(given = "Maria D.", 
            family = "Guillen", 
            role = c("cre", "aut"),
@@ -36,3 +36,5 @@ Suggests:
     testthat (>= 3.0.0)
 VignetteBuilder: knitr
 Config/testthat/edition: 3
+Depends: 
+    R (>= 2.10)

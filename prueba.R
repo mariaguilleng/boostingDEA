@@ -2,6 +2,8 @@ library(ggplot2)
 library(compare)
 library(eat)
 library(MLmetrics)
+library(deaR)
+
 
 # ==
 # Generation of the data
@@ -9,12 +11,12 @@ library(MLmetrics)
 nX <- 1
 x <- 1:nX
 y <- nX+1
-N <- 100
+N <- 50
 seed <- 1234
 data <- CobbDouglas(N,nX)
 
-nterms <- 5
-num_iterarions <- 10
+nterms <- 4
+num_iterarions <- 5
 learning_rate <- 0.5
 
 ggplot(data) +
@@ -68,17 +70,15 @@ MSE(pred_boost_smooth$y_pred, data$yD)
 # ==
 DEA_model <- DEA(data,x,y)
 pred_DEA <- predict(DEA_model, data, x, y)
-compare(pred_DEA,DEA_model$pred)
+sum(pred_DEA == DEA_model$pred) == N
 MSE(pred_DEA, data$yD)
-
-
 
 # ==
 # FDH
 # ==
 FDH_model <- FDH(data,x,y)
 pred_FDH <- predict(FDH_model, data, x, y)
-compare(pred_FDH,FDH_model$pred)
+sum(pred_FDH == FDH_model$pred) == N
 MSE(pred_FDH, data$yD)
 
 
@@ -89,6 +89,18 @@ eatboost_model <- EATBoost(data, x, y, num_iterarions, nterms, learning_rate)
 pred_eatboost <- predict(eatboost_model, data, x)
 sum(eatboost_model$prediction == pred_eatboost) == N
 sum(eatboost_model$prediction == eatboost_model$f0) == N
+
+# Tuning
+result <- bestEATBoost(training, test, x, y,
+                        num.iterations = c(8,9,10,11,12),
+                        learning.rate = c(0.4, 0.5, 0.6),
+                        num.leaves = c(6,7,8,9))
+result[1,]
+model_boost_tuned <- EATBoost(data, x, y,
+                              num.iterations = result[1, "num.iterations"],
+                              learning.rate = result[1, "learning.rate"],
+                              num.leaves = result[1, "num.leaves"])
+pred_boost_tuned <- predict(model_boost_tuned, data, x)
 
 
 # =========
@@ -123,5 +135,143 @@ ggplot(dataplt) +
   geom_line(aes(x = x, y = pred_eatboost, colour = 'EATBoost'))
 
 
-data("PISAindex")
-PISAindex
+# ========
+# Internal dataset
+# ========
+data(banks)
+banks
+x <- 1:3
+y <- 4:5
+N <- nrow(banks)
+
+# ========
+# Efficiency
+# ========
+DEA_model <- DEA(banks,x,y)
+FDH_model <- FDH(banks,x,y)
+EATBoost_model <- EATBoost(banks, x, y, num.iterations = 8, num.leaves = 8,
+                           learning.rate = 0.6)
+
+valid_measures <- c ("rad.out", "rad.in", "Russell.out","Russell.in", "DDF",
+                     "WAM")
+g <- "dmu"
+weights <- "mip"
+score <- data.frame(matrix(nrow = N, ncol = 0))
+
+for (m in valid_measures) {
+
+  # DEA
+  score <- cbind(score, efficiency(DEA_model, measure = m, banks, x, y,
+                                   direction.vector = g, weights = weights))
+
+  # FDH
+  score <- cbind(score, efficiency(FDH_model, measure = m, banks, x, y,
+                                   direction.vector = g, weights = weights))
+
+  # EATBooost
+  score <- cbind(score, efficiency(EATBoost_model, measure = m, banks, x, y,
+                                   heuristic = TRUE, direction.vector = g,
+                                   weights = weights))
+
+}
+score
+
+# check radial input
+data_DEA1 <- read_data(banks,
+                       inputs = x,
+                       outputs = y, dmus = NULL)
+result <- model_basic(data_DEA1,
+                      orientation = "io",
+                      rts = "vrs")
+round(as.vector(efficiencies(result,)),4) == round(score$DEA.rad.in,4)
+# check radial input
+data_DEA1 <- read_data(banks,
+                       inputs = x,
+                       outputs = y, dmus = NULL)
+result <- model_basic(data_DEA1,
+                      orientation = "io",
+                      rts = "vrs")
+round(as.vector(efficiencies(result,)),4) == round(score$DEA.rad.in,4)
+# check WAM
+data_example <- read_data(banks,
+                          inputs = x,
+                          outputs = y, dmus = NULL)
+if (weights == "MIP") {
+  additive <- model_additive(data_example, rts = "vrs",
+                             weight_slack_i = 1 / data_example[["input"]],
+                             weight_slack_o = 1 / data_example[["output"]])
+  additive_result <- c()
+  for (dmu in additive$DMU) {
+    additive_result <- append(additive_result, dmu$objval)
+  }
+  round(additive_result,4) == round(score$DEA.WAM,4)
+} else if (weights == "RAM" ) {
+  range_i <- apply(data_example[["input"]], 1, max) -
+    apply(data_example[["input"]], 1, min)
+  range_o <- apply(data_example[["output"]], 1, max) -
+    apply(data_example[["output"]], 1, min)
+  w_range_i <- 1 / (range_i * (dim(data_example[["input"]])[1] +
+                                 dim(data_example[["output"]])[1]))
+  w_range_o <- 1 / (range_o * (dim(data_example[["input"]])[1] +
+                                 dim(data_example[["output"]])[1]))
+
+  result3 <- model_additive(data_example,
+                            rts = "vrs",
+                            weight_slack_i = w_range_i,
+                            weight_slack_o = w_range_o)
+  additive_result <- c()
+  for (dmu in result3$DMU) {
+    additive_result <- append(additive_result, dmu$objval)
+  }
+  round(additive_result,4) == round(score$DEA.WAM,4)
+} else if (weights == "BAM") {
+  # check wam bam
+  min_i <- apply(data_example[["input"]], 1, min)
+  max_o <- apply(data_example[["output"]], 1, max)
+  w_range_i <- 1 / ((data_example[["input"]] - min_i) *
+                      (dim(data_example[["input"]])[1] + dim(data_example[["output"]])[1]))
+  w_range_o <- 1 / ((max_o - data_example[["output"]]) *
+                      (dim(data_example[["input"]])[1] + dim(data_example[["output"]])[1]))
+  w_range_i <- replace(w_range_i, w_range_i==Inf, 0)
+  w_range_o <- replace(w_range_o, w_range_o==Inf, 0)
+  result_wam <- model_additive(data_example,
+                               rts = "vrs",
+                               weight_slack_i = w_range_i,
+                               weight_slack_o = w_range_o)
+  additive_result <- c()
+  for (dmu in result_wam$DMU) {
+    additive_result <- append(additive_result, dmu$objval)
+  }
+  round(additive_result,4) == round(score$DEA.WAM,4)
+} else if (weights == "normalized") {
+  w_range_i <- 1 / apply(data_example[["input"]], 1, sd)
+  w_range_o <- 1 / apply(data_example[["output"]], 1, sd)
+  result_wam <- model_additive(data_example,
+                               rts = "vrs",
+                               weight_slack_i = w_range_i,
+                               weight_slack_o = w_range_o)
+  additive_result <- c()
+  for (dmu in result_wam$DMU) {
+    additive_result <- append(additive_result, dmu$objval)
+  }
+  round(additive_result,4) == round(score$DEA.WAM,4)
+} else {
+  result_wam <- model_additive(data_example,
+                               rts = "vrs",
+                               weight_slack_i = weights[x],
+                               weight_slack_o = weights[y])
+  additive_result <- c()
+  for (dmu in result_wam$DMU) {
+    additive_result <- append(additive_result, dmu$objval)
+  }
+  round(additive_result,4) == round(score$DEA.WAM,4)
+}
+
+
+##################
+# exact measures
+#################
+get.a.EATBoost(eatboost_model)
+get.a.EATBoost(EATBoost_model)
+
+

@@ -15,10 +15,12 @@
 #'
 #' @export
 DEA <- function(data, x, y) {
-  result <- predictDEA_BBC_out(data, x, y)
+
+  scores <- BBC_out(data, x, y)
+  pred_DEA <- scores * data[, y]
 
   # DEA object
-  DEA <- DEA_object(data, x, y, result$pred, result$score)
+  DEA <- DEA_object(data, x, y, pred_DEA, scores)
 
   return(DEA)
 }
@@ -57,71 +59,4 @@ DEA_object <- function(data, x, y, pred, score) {
   class(DEA_object) <- "DEA"
 
   return(DEA_object)
-}
-
-
-
-#' @title Model prediction for DEA
-#'
-#' @description This function predicts the expected output through a DEA model.
-#'
-#' @param data \code{data.frame} or \code{matrix} containing the new variables
-#' in the model.
-#' @param x Vector. Column input indexes in data.
-#' @param y Vector. Column output indexes in data.
-#' @param dataOriginal \code{data.frame} or \code{matrix} containing the
-#' original
-#' variables used to create the model.
-#' @param xOriginal Vector. Column input indexes in original data.
-#' @param yOriginal Vector. Column output indexes in original data.
-#'
-#' @importFrom lpSolveAPI make.lp lp.control set.objfn add.constraint set.type
-#' set.bounds get.objective
-#'
-#' @return \code{data.frame} with the the predicted values through a DEA model
-#' and the efficiency score
-predictDEA_BBC_out <- function(data, x, y, dataOriginal = data,
-                               xOriginal = x, yOriginal = y) {
-  if (length(x) != length(xOriginal) || length(y) != length(yOriginal)) {
-    stop("Size of inputs or outputs does not match original data sample")
-  }
-
-  # variables
-  j <- nrow(data)
-  x_k <- as.matrix(data[, x])
-  y_k <- as.matrix(data[, y])
-  xOriginal_k <- as.matrix(dataOriginal[, x])
-  yOriginal_k <- as.matrix(dataOriginal[, y])
-  nX <- length(x)
-  nY <- length(y)
-  scores <- matrix(nrow = j, ncol = 1)
-
-  # get scores
-  for (d in 1:j) {
-    objVal <- matrix(ncol = j + 1, nrow = 1)
-    objVal[1] <- 1
-    # structure for lpSolve
-    lps <- make.lp(nrow = nX + nY, ncol = j + 1)
-    lp.control(lps, sense = "max")
-    set.objfn(lps, objVal)
-    # constrain 2.1 and 2.2
-    for (xi in 1:nX)
-    {
-      add.constraint(lps, xt = c(0, xOriginal_k[, xi]), "<=", rhs = x_k[d, xi])
-    }
-    for (yi in 1:nY)
-    {
-      add.constraint(lps, xt = c(-y_k[d, yi], yOriginal_k[, yi]), ">=", rhs = 0)
-    }
-    # Constrain 2.3 - phi = 1
-    add.constraint(lprec = lps, xt = c(0, rep(1, j)), type = "=", rhs = 1)
-    solve(lps)
-    scores[d, ] <- get.objective(lps)
-  }
-
-  # get prediction
-  pred_DEA <- scores * data[, y]
-
-  result <- data.frame(pred = pred_DEA, score = scores)
-  return(result)
 }

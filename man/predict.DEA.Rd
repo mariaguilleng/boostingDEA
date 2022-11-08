@@ -4,7 +4,7 @@
 \alias{predict.DEA}
 \title{Model Prediction for DEA}
 \usage{
-\method{predict}{DEA}(object, newdata, x, y, measure = "rad.out", ...)
+\method{predict}{DEA}(object, newdata, x, y, ...)
 }
 \arguments{
 \item{object}{A \code{DEA} object.}
@@ -15,9 +15,9 @@
 
 \item{y}{Outputs index.}
 
-\item{measure}{Measure used for the prediction.}
-
 \item{...}{further arguments passed to or from other methods.}
+
+\item{measure}{Measure used for the prediction.}
 }
 \value{
 \code{data.frame} with the predicted values. Valid measures are:

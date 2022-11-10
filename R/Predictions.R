@@ -202,7 +202,6 @@ predict.EATBoost <- function(object, newdata, x, ...) {
 #' @param newdata \code{data.frame}. Set of input variables to predict on.
 #' @param x Inputs index.
 #' @param y Outputs index.
-#' @param measure Measure used for the prediction.
 #' @param ... further arguments passed to or from other methods.
 #'
 #' @return \code{data.frame} with the predicted values. Valid measures are:
@@ -226,7 +225,6 @@ predict.DEA <- function(object, newdata, x, y, ...) {
 #' @param newdata \code{data.frame}. Set of input variables to predict on.
 #' @param x Inputs index.
 #' @param y Outputs index.
-#' @param measure Measure used for the prediction.
 #' @param ... further arguments passed to or from other methods.
 #'
 #' @return \code{data.frame} with the predicted values. Valid measures are:

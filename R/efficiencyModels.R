@@ -25,17 +25,18 @@ BBC_out <- function(data, x, y, dataOriginal = data,
   }
 
   # variables
-  j <- nrow(data)
+  j <- nrow(dataOriginal)
+  numDMU <- nrow(data)
   x_k <- as.matrix(data[, x])
   y_k <- as.matrix(data[, y])
   xOriginal_k <- as.matrix(dataOriginal[, x])
   yOriginal_k <- as.matrix(dataOriginal[, y])
   nX <- length(x)
   nY <- length(y)
-  scores <- matrix(nrow = j, ncol = 1)
+  scores <- matrix(nrow = numDMU, ncol = 1)
 
   # get scores
-  for (d in 1:j) {
+  for (d in 1:numDMU) {
     objVal <- matrix(ncol = j + 1, nrow = 1)
     objVal[1] <- 1
     # structure for lpSolve
@@ -93,17 +94,18 @@ BBC_in <- function(data, x, y, dataOriginal = data,
   }
 
   # variables
-  j <- nrow(data)
+  j <- nrow(dataOriginal)
+  numDMU <- nrow(data)
   x_k <- as.matrix(data[, x])
   y_k <- as.matrix(data[, y])
   xOriginal_k <- as.matrix(dataOriginal[, x])
   yOriginal_k <- as.matrix(dataOriginal[, y])
   nX <- length(x)
   nY <- length(y)
-  scores <- matrix(nrow = j, ncol = 1)
+  scores <- matrix(nrow = numDMU, ncol = 1)
 
   # get scores
-  for (d in 1:j) {
+  for (d in 1:numDMU) {
     objVal <- matrix(ncol = j + 1, nrow = 1)
     objVal[1] <- 1
     # structure for lpSolve
@@ -160,17 +162,18 @@ Russell_out <- function(data, x, y, dataOriginal = data,
   }
 
   # variables
-  j <- nrow(data)
+  j <- nrow(dataOriginal)
+  numDMU <- nrow(data)
   x_k <- as.matrix(data[, x])
   y_k <- as.matrix(data[, y])
   xOriginal_k <- as.matrix(dataOriginal[, x])
   yOriginal_k <- as.matrix(dataOriginal[, y])
   nX <- length(x)
   nY <- length(y)
-  scores <- matrix(nrow = j, ncol = 1)
+  scores <- matrix(nrow = numDMU, ncol = 1)
 
   # get scores
-  for (d in 1:j) {
+  for (d in 1:numDMU) {
 
     objVal <- matrix(ncol = j + nY, nrow = 1)
     objVal[1:nY] <- 1 / nY
@@ -236,17 +239,18 @@ Russell_in <- function(data, x, y, dataOriginal = data,
   }
 
   # variables
-  j <- nrow(data)
+  j <- nrow(dataOriginal)
+  numDMU <- nrow(data)
   x_k <- as.matrix(data[, x])
   y_k <- as.matrix(data[, y])
   xOriginal_k <- as.matrix(dataOriginal[, x])
   yOriginal_k <- as.matrix(dataOriginal[, y])
   nX <- length(x)
   nY <- length(y)
-  scores <- matrix(nrow = j, ncol = 1)
+  scores <- matrix(nrow = numDMU, ncol = 1)
 
   # get scores
-  for (d in 1:j) {
+  for (d in 1:numDMU) {
 
     objVal <- matrix(ncol = j + nX, nrow = 1)
     objVal[1:nX] <- 1 / nX
@@ -338,17 +342,18 @@ DDF <- function(data, x, y, dataOriginal = data,
 
 
   # variables
-  j <- nrow(data)
+  j <- nrow(dataOriginal)
+  numDMU <- nrow(data)
   x_k <- as.matrix(data[, x])
   y_k <- as.matrix(data[, y])
   xOriginal_k <- as.matrix(dataOriginal[, x])
   yOriginal_k <- as.matrix(dataOriginal[, y])
   nX <- length(x)
   nY <- length(y)
-  scores <- matrix(nrow = j, ncol = 1)
+  scores <- matrix(nrow = numDMU, ncol = 1)
 
   # get scores
-  for(d in 1:j){
+  for(d in 1:numDMU){
 
     if(dmu) {
       g <- c()
@@ -414,6 +419,7 @@ DDF <- function(data, x, y, dataOriginal = data,
 #'
 #' @importFrom lpSolveAPI make.lp lp.control set.objfn add.constraint set.type
 #' set.bounds get.objective
+#' @importFrom stats sd
 #'
 #' @return \code{matrix} with the the predicted score
 WAM <- function(data, x, y, dataOriginal = data,
@@ -424,14 +430,15 @@ WAM <- function(data, x, y, dataOriginal = data,
   }
 
   # variables
-  j <- nrow(data)
+  j <- nrow(dataOriginal)
+  numDMU <- nrow(data)
   x_k <- as.matrix(data[, x])
   y_k <- as.matrix(data[, y])
   xOriginal_k <- as.matrix(dataOriginal[, x])
   yOriginal_k <- as.matrix(dataOriginal[, y])
   nX <- length(x)
   nY <- length(y)
-  scores <- matrix(nrow = j, ncol = 1)
+  scores <- matrix(nrow = numDMU, ncol = 1)
 
   if (is.null(weights)) {
     stop("Weigths must be specified")
@@ -442,22 +449,22 @@ WAM <- function(data, x, y, dataOriginal = data,
            output variables")
     }
   } else if (weights == "RAM") {
-    inputRanges <- apply(x_k, 2, max) - apply(x_k, 2, min)
-    outputRanges <- apply(y_k, 2, max) - apply(y_k, 2, min)
+    inputRanges <- apply(xOriginal_k, 2, max) - apply(xOriginal_k, 2, min)
+    outputRanges <- apply(yOriginal_k, 2, max) - apply(yOriginal_k, 2, min)
     ranges <- 1 / ((nX + nY) * c(inputRanges, outputRanges))
   } else if (weights == "BAM") {
-    min_x <- apply(x_k, 2, min)
-    max_y <- apply(y_k, 2, max)
+    min_x <- apply(xOriginal_k, 2, min)
+    max_y <- apply(yOriginal_k, 2, max)
   } else if (weights == "normalized") {
-    input_sd <- apply(x_k, 2, sd)
-    output_sd <- apply(y_k, 2, sd)
+    input_sd <- apply(xOriginal_k, 2, sd)
+    output_sd <- apply(yOriginal_k, 2, sd)
     sd_vector <- 1 / c(input_sd, output_sd)
   } else if (weights  != "MIP") {
     stop("Invalid value of weights")
   }
 
   # get scores
-  for(d in 1:j){
+  for(d in 1:numDMU){
 
     objVal <- matrix(ncol = nX + nY + j, nrow = 1)
 
@@ -510,6 +517,101 @@ WAM <- function(data, x, y, dataOriginal = data,
     # Constrain 2.4
     if (FDH) {
       set.type(lps, columns = 1:j + (nX + nY), type = c("binary"))
+    }
+
+    solve(lps)
+    scores[d, ] <- get.objective(lps)
+  }
+
+  return(scores)
+}
+
+
+#' @title Enhanced Russell Graph measure
+#'
+#' @description This function predicts the expected output through a DEA model.
+#'
+#' @param data \code{data.frame} or \code{matrix} containing the new variables
+#' in the model.
+#' @param x Vector. Column input indexes in data.
+#' @param y Vector. Column output indexes in data.
+#' @param dataOriginal \code{data.frame} or \code{matrix} containing the
+#' original
+#' variables used to create the model.
+#' @param xOriginal Vector. Column input indexes in original data.
+#' @param yOriginal Vector. Column output indexes in original data.
+#' @param FDH Binary decision variables
+#'
+#' @importFrom lpSolveAPI make.lp lp.control set.objfn add.constraint set.type
+#' set.bounds get.objective
+#'
+#' @return \code{matrix} with the the predicted score
+ERG <- function(data, x, y, dataOriginal = data,
+                xOriginal = x, yOriginal = y, FDH = FALSE) {
+
+  if (length(x) != length(xOriginal) || length(y) != length(yOriginal)) {
+    stop("Size of inputs or outputs does not match original data sample")
+  }
+
+  # variables
+  j <- nrow(dataOriginal)
+  numDMU <- nrow(data)
+  x_k <- as.matrix(data[, x])
+  y_k <- as.matrix(data[, y])
+  xOriginal_k <- as.matrix(dataOriginal[, x])
+  yOriginal_k <- as.matrix(dataOriginal[, y])
+  nX <- length(x)
+  nY <- length(y)
+  scores <- matrix(nrow = numDMU, ncol = 1)
+
+  # get scores
+  for (d in 1:numDMU) {
+
+    objVal <- matrix(ncol = j + 1 + nX + nY, nrow = 1)
+    objVal[1] <- 1
+    objVal[(1:nX) + 1] <- c(- 1 / (nX * x_k[d, ]))
+
+    # structure for lpSolve
+    lps <- make.lp(nrow = nX + nY + 2, ncol = j + 1 + nX + nY)
+    lp.control(lps, sense = "min")
+    set.objfn(lps, objVal)
+    # contraint 2.1
+    # TODO: modificar -- esta mal
+    vec <- c()
+    vec[1] <- 1
+    vec[(1:nX)+1] <- 0
+    vec[(nX + 2):(nX + nY + 1)] <- c(1 / (nY * y_k[d, ]))
+    vec[(nX + nY + 2):(nY + nX + j + 1)] <- 0
+
+    add.constraint(lps, xt = vec, "=", rhs = 1)
+    # constrain 2.2
+    for (xi in 1:nX)
+    {
+      vec <- c()
+      vec[1] <- - x_k[d, xi]
+      vec[(1:(nX+nY)) + 1] <- 0
+      vec[xi+1] <- 1
+      vec[(nX + nY + 2):(nX + nY + 1 + j)] <- xOriginal_k[, xi]
+
+      add.constraint(lps, xt = vec, "=",  rhs = 0)
+    }
+    # constrain 2.3
+    for(yi in 1:nY)
+    {
+      vec <- c()
+      vec[1] <- - y_k[d, yi]
+      vec[(1:(nX+nY)) + 1] <- 0
+      vec[1 + nX + yi] <- - 1
+      vec[(nX + nY + 2):(nY + nX + j + 1)] <- yOriginal_k[, yi]
+
+      add.constraint(lps, xt = vec, "=", rhs = 0)
+    }
+    # Constrain 2.4 - sum(lambdas) = beta
+    add.constraint(lprec = lps, xt = c(-1, rep(0, nX + nY), rep(1, j)),
+                   type = "=", rhs = 0)
+    if (FDH) {
+      # Constrain 2.4 - Binary
+      set.type(lps, 1:j + (nX+nY+1), "binary")
     }
 
     solve(lps)

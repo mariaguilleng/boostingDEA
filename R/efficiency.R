@@ -35,8 +35,8 @@ efficiency <- function(model, measure, data, x, y, heuristic = FALSE,
 
   # parameter control
   valid_measures <- c("rad.out", "rad.in", "Russell.out", "Russell.in", "DDF",
-                      "WAM")
-  valid_models <- c("DEA", "FDH", "EATBoost", "MARSBoost")
+                      "WAM", "ERG")
+  valid_models <- c("DEA", "FDH", "EATBoost") # TODO: MARSBoost
   if (! measure %in% valid_measures) {
     stop("Measure not valid. Valid values for measure are: ", valid_measures)
   }
@@ -45,89 +45,65 @@ efficiency <- function(model, measure, data, x, y, heuristic = FALSE,
     stop("Model not valid. Valid classes for model are: ", valid_models)
   }
 
+  # Preprocess
+  data <- preProcess(data, x, y)
+
   # data used to create the model
-  dataOriginal <- model[["data"]][["df"]]
+  fdh <- (model_class == "FDH" || model_class == "EATBoost")
   xOriginal <- model[["data"]][["x"]]
   yOriginal <- model[["data"]][["y"]]
+  dataOriginal <- model[["data"]][["df"]]
+  if (model_class %in% c("DEA", "FDH")) {
+    baseData <- dataOriginal
+  } else if (model_class == "EATBoost" && heuristic == TRUE) {
+    pred <- predict(model, dataOriginal, xOriginal)
+    baseData <- cbind(dataOriginal[, xOriginal], pred)
+  } else { # model_class == "EATBoost" && heuristic == FALSE
+    final_a <- as.data.frame(get.a.EATBoost(model))
+    colnames(final_a) <- model[["data"]][["input_names"]]
+    pred_a <- predict(model, final_a, 1:ncol(final_a))
+    baseData <- cbind(final_a, pred_a)
+  }
 
   # calculate score
-  switch(model_class,
-         # DEA model
-         DEA = {
-           if (measure == "rad.out") {
-             score <- BBC_out(data, x, y, dataOriginal, xOriginal, yOriginal)
-           } else if (measure == "rad.in") {
-             score <- BBC_in(data, x, y, dataOriginal, xOriginal, yOriginal)
-           } else if (measure == "Russell.out") {
-             score <- Russell_out(data, x, y, dataOriginal, xOriginal, yOriginal)
-           } else if (measure == "Russell.in") {
-             score <- Russell_in(data, x, y, dataOriginal, xOriginal, yOriginal)
-           } else if (measure == "DDF") {
-             score <- DDF(data, x, y, dataOriginal, xOriginal, yOriginal,
-                          direction.vector = direction.vector)
-           } else if (measure == "WAM") {
-             score <- WAM(data, x, y, dataOriginal, xOriginal, yOriginal,
-                          weights = weights)
-           }
-         },
-         # FDH model
-         FDH = {
-           if (measure == "rad.out") {
-             score <- BBC_out(data, x, y, dataOriginal, xOriginal, yOriginal,
-                              FDH = TRUE)
-           } else if (measure == "rad.in") {
-             score <- BBC_in(data, x, y, dataOriginal, xOriginal, yOriginal,
-                              FDH = TRUE)
-           } else if (measure == "Russell.out") {
-             score <- Russell_out(data, x, y, dataOriginal, xOriginal, yOriginal,
-                                  FDH = TRUE)
-           } else if (measure == "Russell.in") {
-             score <- Russell_in(data, x, y, dataOriginal, xOriginal, yOriginal,
-                                 FDH = TRUE)
-           } else if (measure == "DDF") {
-             score <- DDF(data, x, y, dataOriginal, xOriginal, yOriginal,
-                          FDH = TRUE, direction.vector = direction.vector)
-           } else if (measure == "WAM") {
-             score <- WAM(data, x, y, dataOriginal, xOriginal, yOriginal,
-                          FDH = TRUE, weights = weights)
-           }
-         },
-         # EATBoost model
-         EATBoost = {
-           # heuristic approach
-           if(heuristic == TRUE) {
-             pred <- predict(model, dataOriginal, xOriginal)
-             baseData <- cbind(dataOriginal[, xOriginal], pred)
-           #exact scores
-           } else {
-             stop("Only heuristic approaach")
-             # get a
-             # get f(a)
-             # baseData <- a + f(a)
-           }
-           if (measure == "rad.out") {
-             score <- BBC_out(data, x, y, baseData, xOriginal, yOriginal)
-           } else if (measure == "rad.in") {
-             score <- BBC_in(data, x, y, baseData, xOriginal, yOriginal)
-           } else if (measure == "Russell.out") {
-             score <- Russell_out(data, x, y, baseData, xOriginal, yOriginal)
-           } else if (measure == "Russell.in") {
-             score <- Russell_in(data, x, y, baseData, xOriginal, yOriginal)
-           } else if (measure == "DDF") {
-             score <- DDF(data, x, y, dataOriginal, xOriginal, yOriginal,
-                          direction.vector = direction.vector)
-           } else if (measure == "WAM") {
-             score <- WAM(data, x, y, dataOriginal, xOriginal, yOriginal,
-                          weights = weights)
-           }
-         }
-  )
+  if (measure == "rad.out") {
+    score <- BBC_out(data, x, y, baseData, xOriginal, yOriginal, FDH = fdh)
+  } else if (measure == "rad.in") {
+    score <- BBC_in(data, x, y, baseData, xOriginal, yOriginal, FDH = fdh)
+  } else if (measure == "Russell.out") {
+    score <- Russell_out(data, x, y, baseData, xOriginal, yOriginal, FDH = fdh)
+  } else if (measure == "Russell.in") {
+    score <- Russell_in(data, x, y, baseData, xOriginal, yOriginal, FDH = fdh)
+  } else if (measure == "DDF") {
+    score <- DDF(data, x, y, baseData, xOriginal, yOriginal,
+                 direction.vector = direction.vector, FDH = fdh)
+  } else if (measure == "WAM") {
+    score <- WAM(data, x, y, baseData, xOriginal, yOriginal,
+                 weights = weights, FDH = fdh)
+  } else { # measure == ERG
+    score <- ERG(data, x, y, baseData, xOriginal, yOriginal, FDH = fdh)
+  }
+
+  # return score
   df <- as.data.frame(score, row.names = model[["data"]][["row_names"]])
   colnames(df) <- c(paste(model_class, measure, sep = "."))
   return(df)
 }
 
-
+#' @title Get the inferior corner of the leave support from all trees
+#' of \code{EATBoost}
+#'
+#' @description Calculates the inferior corner of the support of all leave nodes
+#' of every tree created in the \code{EATBoost} model
+#'
+#' @param EATBoost_model Model from class \code{EATBoost} from which the data
+#' are obtained
+#'
+#' @return \code{list} of \code{matrix}. The length of the list is equal to
+#' the \code{num.iterations} of the \code{EATBoost_model}. Each \code{matrix}
+#' corresponds to a tree,  where the number of columns is the number of input
+#'  variables and the number of rows to the number of leaves
+#'
 get.a.trees <- function(EATBoost_model) {
   list_a = list()
   EAT.models <- EATBoost_model[["EAT.models"]]
@@ -137,6 +113,20 @@ get.a.trees <- function(EATBoost_model) {
   return(list_a)
 }
 
+#' @title Get the superior corner of the leave support from all trees
+#' of \code{EATBoost}
+#'
+#' @description Calculates the superior corner of the support of all leave nodes
+#' of every tree created in the \code{EATBoost} model
+#'
+#' @param EATBoost_model Model from class \code{EATBoost} from which the data
+#' are obtained
+#'
+#' @return \code{list} of \code{matrix}. The length of the list is equal to
+#' the \code{num.iterations} of the \code{EATBoost_model}. Each \code{matrix}
+#' corresponds to a tree,  where the number of columns is the number of input
+#'  variables and the number of rows to the number of leaves
+#'
 get.b.trees <- function(EATBoost_model) {
   list_b = list()
   EAT.models <- EATBoost_model[["EAT.models"]]
@@ -155,7 +145,37 @@ get.b.trees <- function(EATBoost_model) {
   return(list_b)
 }
 
-#' @export
+#' @title Get intersection between two leaves supports
+#'
+#' @description Calculates the intersection between two leave nodes from
+#' different trees of a \code{EATBoost} model.
+#'
+#' @param current_a Inferior corner of first leave support
+#' @param current_b Superior corner of first leave support
+#' @param new_a Inferior corner of second leave support
+#' @param new_b Superior corner of second leave support
+#'
+#' @return \code{vector} with the intersection. \code{NULL} if intersection
+#' is not valid.
+#'
+get.intersection.a <- function(current_a, current_b, new_a, new_b) {
+  intersection_a <- pmax(current_a, new_a)
+  intersection_b <- pmin(current_b, new_b)
+  if (sum(intersection_a < intersection_b) == length(intersection_a)) {
+    return(intersection_a)
+  }
+}
+
+#' @title Get \code{EATBoost} leaves supports
+#'
+#' @description Calculates the inferior corner of the leaves supports of a
+#' \code{EATBoost} model.
+#'
+#' @param EATBoost_model Model from class \code{EATBoost} from which the data
+#' are obtained
+#'
+#' @return \code{data.frame} with the leave supports
+#'
 get.a.EATBoost <- function(EATBoost_model) {
 
   list_a <- get.a.trees(EATBoost_model)
@@ -173,23 +193,32 @@ get.a.EATBoost <- function(EATBoost_model) {
       current_a <- list_a[[i]][j,]
       current_b <- list_b[[i]][j,]
 
-      # comparar con el resto de a
+      # comparar con el resto de hojas en el mismo arbol
+      if (j < num.leaves) {
+        for (m in (j+1):num.leaves) {
+          new_a <-list_a[[i]][m,]
+          new_b <-list_b[[i]][m,]
+          #cat("--- comparando arbol", i, "nodo", j, "con arbol", i, "nodo", m, "\n")
+          intersection_a <- get.intersection.a(current_a, current_b, new_a, new_b)
+          final_a <- rbind(final_a, intersection_a)
+        }
+      }
+
+      # comparar con el resto de arboles
       for (k in (i+1):num.iterations) {
         for (m in 1:num.leaves) {
           new_a <-list_a[[k]][m,]
           new_b <-list_b[[k]][m,]
-          cat("--- comparando arbol", i, "nodo", j, "con arbol", k, "nodo", m, "\n")
-
-          # intersection_a <- get.intersection.a(current_a, current_b, new_a, new_b)
-          # TODO: calcular la interseccion como max {a} y min {b} y comprobar
-          # si es correcta ( a < b en todas las coordenadas)
-
-          # rbind(final_a, intersection_a)
-          # si la interseccion es correcta, añadir a la solución
+          #cat("--- comparando arbol", i, "nodo", j, "con arbol", k, "nodo", m, "\n")
+          intersection_a <- get.intersection.a(current_a, current_b, new_a, new_b)
+          final_a <- rbind(final_a, intersection_a)
         }
       }
     }
   }
+  final_a <- as.matrix(final_a[!duplicated(final_a),])
+  rownames(final_a) <- NULL
+  return(final_a)
 }
 
 

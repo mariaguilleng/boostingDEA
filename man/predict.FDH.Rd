@@ -16,8 +16,6 @@
 \item{y}{Outputs index.}
 
 \item{...}{further arguments passed to or from other methods.}
-
-\item{measure}{Measure used for the prediction.}
 }
 \value{
 \code{data.frame} with the predicted values. Valid measures are:

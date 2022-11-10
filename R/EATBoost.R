@@ -42,7 +42,7 @@ EATBoost <- function(data, x, y, num.iterations, num.leaves, learning.rate) {
   # VARIABLES #
   # ===========#
 
-  # Prepocess
+  # Preprocess
   data <- preProcess(data, x, y)
 
   # Samples in data

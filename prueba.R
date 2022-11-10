@@ -152,10 +152,11 @@ FDH_model <- FDH(banks,x,y)
 EATBoost_model <- EATBoost(banks, x, y, num.iterations = 8, num.leaves = 8,
                            learning.rate = 0.6)
 
-valid_measures <- c ("rad.out", "rad.in", "Russell.out","Russell.in", "DDF",
-                     "WAM")
+# valid_measures <- c ("rad.out", "rad.in", "Russell.out","Russell.in", "DDF",
+#                      "WAM", "ERG")
+valid_measures <- c ("ERG")
 g <- "dmu"
-weights <- "mip"
+weights <- "RAM"
 score <- data.frame(matrix(nrow = N, ncol = 0))
 
 for (m in valid_measures) {
@@ -168,9 +169,13 @@ for (m in valid_measures) {
   score <- cbind(score, efficiency(FDH_model, measure = m, banks, x, y,
                                    direction.vector = g, weights = weights))
 
-  # EATBooost
+  # EATBooost heu
   score <- cbind(score, efficiency(EATBoost_model, measure = m, banks, x, y,
                                    heuristic = TRUE, direction.vector = g,
+                                   weights = weights))
+  # EATBooost real
+  score <- cbind(score, efficiency(EATBoost_model, measure = m, banks, x, y,
+                                   heuristic = FALSE, direction.vector = g,
                                    weights = weights))
 
 }
@@ -266,12 +271,5 @@ if (weights == "MIP") {
   }
   round(additive_result,4) == round(score$DEA.WAM,4)
 }
-
-
-##################
-# exact measures
-#################
-get.a.EATBoost(eatboost_model)
-get.a.EATBoost(EATBoost_model)
 
 

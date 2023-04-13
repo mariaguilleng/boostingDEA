@@ -30,12 +30,12 @@ after the final knot.}
 
 \item{linpreds}{\code{logical}. If \code{TRUE}, predictors can enter linearly}
 
-\item{err_min}{Minimun error in the split.}
+\item{err_min}{Minimum error in the split.}
 }
 \value{
 A \code{list} containing the matrix of basis functions (\code{B}), a
 \code{list} of basis functions (\code{BF}), a \code{list} of selected knots
-(\code{knots_list}) and the minimun error (\code{err_min}).
+(\code{knots_list}) and the minimum error (\code{err_min}).
 }
 \description{
 This function adds the best pair of basis functions to the model

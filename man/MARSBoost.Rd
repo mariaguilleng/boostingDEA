@@ -5,7 +5,7 @@
 \alias{MARSBoost_object}
 \title{LS-Boosting with adapted Multivariate Adaptive Frontier Splines (MARS)}
 \usage{
-MARSBoost(data, x, y, num.iterations, learning.rate, num.terms)
+MARSBoost(data, x, y, num.iterations, num.terms, learning.rate)
 
 MARSBoost_object(
   data,
@@ -30,11 +30,11 @@ in the model.}
 
 \item{num.iterations}{Maximum number of iterations the algorithm will perform}
 
-\item{learning.rate}{Learning rate that control overfitting of the algorithm.
-Value must be in (0,1]}
-
 \item{num.terms}{Maximum number of reflected pairs created by the forward
 algorithm of MARS.}
+
+\item{learning.rate}{Learning rate that control overfitting of the algorithm.
+Value must be in (0,1]}
 
 \item{MARS.models}{List of the adapted forward MARS models created in each
 iterations}
@@ -61,5 +61,5 @@ which is based upon the adaptation of the machine learning technique known
  as base learners.
 
 This function saves information about the LS-Boosted
-Multivariate Adapative Frontier Splines model.
+Multivariate Adaptive Frontier Splines model.
 }

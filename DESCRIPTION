@@ -1,6 +1,6 @@
-Package: boostingdeaR
+Package: boostingDEA
 Type: Package
-Title: What the Package Does (Title Case)
+Title: A boosting approach to Data Envolopment Analysis
 Version: 0.1.0
 Authors@R: c(
     person(given = "Maria D.", 
@@ -12,24 +12,40 @@ Authors@R: c(
            family = "Aparicio", 
            role = c("aut"),
            email = "j.aparicio@umh.es",
-           comment = c(ORCID = "0000-0002-0867-0004"))
+           comment = c(ORCID = "0000-0002-0867-0004")),
+    person(given = "Miriam", 
+           family = "Esteve", 
+           role = c("aut"),
+           email = "mestevecampello@gmail.com",
+           comment = c(ORCID = "0000-0002-5908-0581")),
+    person(given = "Víctor", 
+           family = "España", 
+           role = c("aut"),
+           comment = c(ORCID = "0000-0002-1807-6180"))
            )
 Maintainer: Maria D. Guillen <maria.guilleng@umh.es>
-Description: More about what it does (maybe more than one line)
-    Use four spaces when indenting paragraphs within the Description.
+Description: This package includes functions to estimate production frontiers 
+    and make ideal output predictions in the Data Envelopment Analysis (DEA) 
+    context using the both standard models from DEA and Free Disposal Hull (FDH)
+    and boosting techniques (EATBoosting and MARSBoosting). Moreover, the 
+    package includes code for estimating several technical efficiency measures 
+    using different models such as the input and output-oriented radial
+    measures, the input and output-oriented Russell measures, the Directional 
+    Distance Function (DDF), the Weighted Additive Measure (WAM) and the
+    Enhanced Russell Graph (ERG).
 License: AGPL (>= 3)
 Encoding: UTF-8
 LazyData: true
-RoxygenNote: 7.2.1
+RoxygenNote: 7.2.3
 Imports:
     Rglpk,
     dplyr,
     lpSolveAPI,
-    eat,
     stats,
-    MLmetrics
-URL: https://github.com/itsmeryguillen/boostingdeaR
-BugReports: https://github.com/itsmeryguillen/boostingdeaR/issues
+    MLmetrics,
+    methods
+URL: https://github.com/itsmeryguillen/boostingDEA
+BugReports: https://github.com/itsmeryguillen/boostingDEA/issues
 Suggests: 
     knitr,
     rmarkdown,

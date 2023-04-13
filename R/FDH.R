@@ -17,7 +17,8 @@
 FDH <- function(data, x, y) {
 
   scores <- BBC_out(data, x, y, FDH = TRUE)
-  pred <- scores * data[, y]
+  pred <- scores * as.data.frame(data[,y], row.names = rownames(data))
+  names(pred) <- paste(colnames(data)[y], "_pred", sep = "")
 
   # FDH object
   FDH <- FDH_object(data, x, y, pred, scores)
@@ -50,10 +51,9 @@ FDH_object <- function(data, x, y, pred, score) {
       y = y,
       input_names = names(data)[x],
       output_names = names(data)[y],
-      row_names = rownames(data)
+      dmu_names = rownames(data)
     ),
-    "pred" = pred,
-    "score" = score
+    "prediction" = pred
   )
 
   class(FDH_object) <- "FDH"

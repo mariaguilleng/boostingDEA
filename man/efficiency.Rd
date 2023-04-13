@@ -6,13 +6,13 @@
 \usage{
 efficiency(
   model,
-  measure,
+  measure = "rad.out",
   data,
   x,
   y,
-  heuristic = FALSE,
-  direction.vector,
-  weights
+  heuristic = TRUE,
+  direction.vector = NULL,
+  weights = NULL
 )
 }
 \arguments{

@@ -1,0 +1,272 @@
+---
+title: "boostingDEA"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{boostingDEA}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+  %\VignetteEngine{knitr::rmarkdown_notangle}
+---
+
+<style>
+  body {
+    text-align: justify;
+    }
+</style>
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+```{r setup}
+library(boostingDEA)
+set.seed(1234)
+```
+
+
+## The production theory background
+
+This vignette intends to explain the main functions of the `boostingDEA` package. In it, techniques from the field of **machine learning** are incorporated into solving problems in the **production theory** context. Specifically, two adaptations of the [Gradient Boosting](https://projecteuclid.org/journals/annals-of-statistics/volume-29/issue-5/Greedy-function-approximation-A-gradient-boostingmachine/10.1214/aos/1013203451.full) technique are introduced: **EATBoost** and **MARSBoost**. Gradient boosting is one of the variants of ensemble methods where multiple weak models are created and combined to get better performance as a whole. As a consequence, Gradient Boosting gives a prediction model in the form of an ensemble of weak prediction models. Specifically, at each step, a new weak model is trained to predict the "error" of the current strong model. In this package, whilst **EATBoost** uses an adaptation of regression trees known as [Efficiency Analysis Trees](https://www.sciencedirect.com/science/article/pii/S0957417420306072) as weak model, **MARSBoost** uses an adaptation of [Multivariate Adaptive Regression Spline](https://projecteuclid.org/journals/annals-of-statistics/volume-19/issue-1/Multivariate-Adaptive-Regression-Splines/10.1214/aos/1176347963.full). 
+
+As previously said, we are dealing with a production theory context. Let us consider $n$ Decision Making Units (DMUs) to be evaluated. $DMU_i$ consumes $\textbf{x}_i = (x_{1i}, ...,x_{mi}) \in R^{m}_{+}$ amount of inputs for the production of $\textbf{y}_i = (y_{1i}, ...,y_{si}) \in R^{s}_{+}$ amount of outputs. The relative efficiency of each DMU in the sample is assessed regarding the so-called production possibility set or technology, which is the set of technically feasible combinations of $(\textbf{x, y})$. It is defined in general terms as:
+
+\begin{equation}
+    \Psi = \{(\textbf{x, y}) \in R^{m+s}_{+}: \textbf{x} \text{ can produce } \textbf{y}\}
+\end{equation}
+
+Monotonicity (free disposability) of inputs and outputs is assumed, meaning that if $(\textbf{x, y}) \in \Psi$, then $(\textbf{x', y'}) \in \Psi$, as soon as $\textbf{x'} \geq \textbf{x}$ and $\textbf{y'} \leq \textbf{y}$. Often convexity of $\Psi$ is also assumed. The efficient frontier of $\Psi$ may be defined as $\partial(\boldsymbol{\Psi}) := \{(\boldsymbol{x,y}) \in \boldsymbol{\Psi}: \boldsymbol{\hat{x}} < \boldsymbol{x}, \boldsymbol{\hat{y}} > \boldsymbol{y} \Rightarrow (\boldsymbol{\hat{x},\hat{y}}) \notin \boldsymbol{\Psi} \}$. 
+
+## The `banks`' database
+
+The `banks` database is included as a data object in the `boostingDEA` library and is employed to exemplify the package functions. The data corresponds to 31 Taiwanese banks for the year 2010. The dataset was first obtained by [Juo et. al, 2015](https://www.sciencedirect.com/science/article/pii/S0305048315000870) from the “Condition and Performance of Domestic Banks” published by the Central Bank of China (Taiwan) and the Taiwan Economic Journal for the year 2010. 
+  
+The following variables are collected for all banks:
+
+* *Inputs* :
+  
+  * **Financial.funds**: deposits and borrowed funds (in millions of TWD).
+  * **Labor**: number of employees.
+  * **Physical.capital**: net amount of fixed assets (in millions of TWD).
+
+* *Outputs* :
+
+  * **Financial.investments**: financial assets, securities, and equity investments (in millions of TWD)
+  * **Loans**: loans and discounts (in millions of TWD)
+  * **Revenue**: interests from financial investments and loans
+
+``Revenue`` can be interpreted as a combination of the ``Financial.investments`` and ``Loans`` variables, and can be used as the target variable for a mono-output scenario, while ``Financial.investments`` and ``Loans`` for a multi-output scenario.
+
+```{r}
+data(banks)
+banks
+```
+
+## Efficiency models
+
+### Standard techniques: DEA and FDH
+
+Data envelopment analysis (DEA) is the standard nonparametric method for the estimation of production frontiers. In this context, the technology is calculated under assumptions of free disposability, convexity, deterministicness and minimal extrapolation. 
+
+The radial input DEA model can be computed using the ``DEA(data,x,y)`` function. Furthermore, in the case of the mono-output scenario, the ideal output value for the DMU in order to be efficient is also calculated.
+
+```{r}
+x <- 1:3
+y <- 6
+DEA_model <- DEA(banks,x,y)
+pred_DEA <- predict(DEA_model, banks, x, y)
+pred_DEA
+```
+
+Similarly, FDH introduced also estimates production frontiers, but it is based upon only two axioms: free disposability and deterministicness. Therefore, it can be considered as the skeleton of DEA, since the convex hull of the DEA coincides with the DEA's frontier.
+
+In the same fashion, the radial input FDH model can be computed in R using the ``FDH(data,x,y)`` function, where the ideal output in the case of the mono-output case is calculated as well.
+
+```{r}
+x <- 1:3
+y <- 6
+FDH_model <- FDH(banks,x,y)
+pred_FDH <- predict(FDH_model, banks, x, y)
+pred_FDH
+```
+
+
+### EATBoost
+
+The EATBoost algorithm is an adaptation of the Gradient Tree Boosting algorithm to estimate production technologies. However, unlike the standard Gradient Tree Boosting algorithm which uses regression trees as base learners, the EATBoost technique uses [EAT](https://www.sciencedirect.com/science/article/pii/S0957417420306072) trees. Further modifications are also made to satisfy the required theoretical conditions. In particular, the algorithm was modified to deal with the axiom of free disposability in inputs and outputs and to provide estimates that envelop the data cloud from above. These two same postulates are also key in the definition of the standard FDH estimator of a technology. Therefore, this new approach shares similarities with the FDH methodology, but with the advantage that it avoids the typical problem of overfitting.
+
+The ``EATBoost`` function receives as arguments the data (``data``) containing the study variables, the indexes of the predictor variables or inputs (``x``) and the indexes of the predicted variables or outputs (``y``). Moreover, the ``num.iterations``, the ``learning.rate`` and ``num.leaves`` are hyperparameters for the model and are compulsory.  
+
+* ``num.iterations``: The maximum number of iterations the algorithm will perform.
+
+* ``learning.rate``: Learning rate. It controls the overfitting of the algorithm. Value must be in $(0,1]$.
+
+* ``num.leaves``: The maximum number of terminal leaves in each tree at each iteration
+
+The function returns an `EATBoost` object.
+
+```{r, eval = FALSE}
+x <- 1:3
+y <- 4:5
+EATBoost_model <- EATBoost(banks, x, y, 
+                           num.iterations = 4, 
+                           num.leaves = 4,
+                           learning.rate = 0.6)
+```
+
+To try to find the best hyperparameters, we can resort to a grid of parameters values tested through `training` and `test` samples in a user specified proportion. In the package, this can be done through the function ``bestEATBoost``. This function instead of receiving as arguments a single value for each hyperparameter, receives a ``vector``, and evaluates each possible combination in the grid through Mean Square Error (MSE) and Root Mean Square Error (RMSE). Finally, it returns a ``data.frame`` with each possible combination ordered by RMSE. 
+
+```{r bestEATBoost}
+N <- nrow(banks)
+x <- 1:3
+y <- 4:5
+selected <- sample(1:N, N * 0.8) # Training indexes
+training <- banks[selected, ] # Training set
+test <- banks[- selected, ] # Test set
+grid_EATBoost <- bestEATBoost(training, test, x, y,
+                             num.iterations = c(5,6,7),
+                             learning.rate = c(0.4, 0.5, 0.6),
+                             num.leaves = c(6,7,8),
+                             verbose = FALSE)
+head(grid_EATBoost)
+```
+
+```{r}
+EATboost_model_tuned <- EATBoost(banks, x, y,
+                                 num.iterations = grid_EATBoost[1, "num.iterations"],
+                                 learning.rate = grid_EATBoost[1, "learning.rate"],
+                                 num.leaves = grid_EATBoost[1, "num.leaves"])
+pred_EATBoost <- predict(EATboost_model_tuned, banks, x)
+pred_EATBoost
+```
+
+
+### MARSBoost
+
+The MARSBoost algorithm is an adaptation of the [LS-Boosting algorithm](https://projecteuclid.org/journals/annals-of-statistics/volume-29/issue-5/Greedy-function-approximation-A-gradient-boostingmachine/10.1214/aos/1013203451.full) to estimate production technologies. In this case, the base learner used in the algorithm is an adaptation of the [MARS](https://projecteuclid.org/journals/annals-of-statistics/volume-19/issue-1/Multivariate-Adaptive-Regression-Splines/10.1214/aos/1176347963.full) model. MARS essentially builds flexible models by fitting piecewise linear regressions; that is, the non-linearity of a model is approximated through the use of separate regression slopes in distinct intervals of the predictor variable space. The combinations of these models, which do not have a continuous first derivative, led to sharp trends. For this reason, a smoothing procedure can be applied. Thus, the estimator obtained without the smoothing procedure presents similarities with the one obtained by DEA, while the estimate in the second stage resembles more well-known (smoothed) functional forms typical of production theory; like Cobb-Douglas, CES or Translog.
+
+The ``MARSBoost`` function works similarly to the ``EATBoost`` one. It receives as arguments the data (``data``) containing the study variables, the indexes of the predictor variables or inputs (``x``), the indexes of the predicted variables or outputs (``y``) and a set of hyperparameters:  
+
+* ``num.iterations``: The maximum number of iterations the algorithm will perform.
+
+* ``learning.rate``: Learning rate. It controls the overfitting of the algorithm. Value must be in $(0,1]$.
+
+* ``num.terms``: The maximum number of reflected pairs in each model at each iteration
+
+The function returns an `MARSBoost` object and can be only used in mono-ouput scenarios.
+
+```{r, eval = FALSE}
+x <- 1:3
+y <- 6
+MARSBoost_model <- MARSBoost(banks, x, y, 
+                             num.iterations = 4, 
+                             learning.rate = 0.6,
+                             num.terms = 4)
+```
+
+In this case, to find the best hyperparameters, we can resort to the ``bestMARSBoost`` function. Here, 
+we can create a grid of hypersparameters to find the optimal value for `num.iterations`, `learning.rate` and `num.terms`. 
+
+```{r bestMARSBoost}
+N <- nrow(banks)
+x <- 1:3
+y <- 6
+selected <- sample(1:N, N * 0.8) # Training indexes
+training <- banks[selected, ] # Training set
+test <- banks[- selected, ] # Test set
+grid_MARSBoost <- bestMARSBoost(training, test, x, y,
+                              num.iterations = c(5,6,7),
+                              learning.rate = c(0.4, 0.5, 0.6),
+                              num.terms = c(6,7,8),
+                              verbose = FALSE)
+head(grid_MARSBoost)
+```
+
+```{r}
+MARSBoost_model_tuned <- MARSBoost(banks, x, y,
+                                   num.iterations = grid_MARSBoost[1, "num.iterations"],
+                                   learning.rate = grid_MARSBoost[1, "learning.rate"],
+                                   num.terms = grid_MARSBoost[1, "num.terms"])
+pred_MARSBoost <- predict(MARSBoost_model_tuned, banks, x)
+pred_MARSBoost
+```
+
+
+## Measuring technical efficiency
+
+Technical inefficiency is defined as the distance from a point that belongs to $\Psi$ to the production frontier $\partial(\Psi)$. For a point located inside $\Psi$, it is evident that there are many possible paths to the frontier, each associated with a different technical inefficiency measure.
+
+The function `efficiency` calculates the efficiency score corresponding to the given model using the given measure. A dataset (`data`) and the corresponding indexes of input(s) (`x`) and output(s) (`y`) must be entered. It is recommended that the dataset with the DMUs whose efficiency is to be calculated coincide with those used to estimate the frontier. The possible argument of this function are: 
+ 
+* `model`: Model object for which efficiency score is computed. Valid objects are the ones returned from functions `DEA`, `FDH`, `EATBoost` and `MARSBoost`.
+
+* `measure`: Efficiency measure used. Valid values are: 
+  * `rad.out`: Banker Charnes and Cooper output-oriented radial model
+  * `rad.in`: Banker Charnes and Cooper input-oriented radial model 
+  * `Russell.out`: output-oriented Russell model 
+  * `Russell.in`: input-oriented Russell model 
+  * `DDF`: Directional Distance Function model. The directional vector is specified in the argument `direction.vector`
+  * `WAM`: Weight Additive Models
+  * `ERG`: Enhanced Russel Measure
+
+* `heuristic`: Only used if the `model` is `EATBoost`. This indicates whether the heuristic or the exact approach is used. This heuristic approach might be needed due to the extreme complexity at a computational level of the EATBoot exact efficiency approach.
+
+* `direction.vector`: Only used when the `measure` is `DDF`. Indicates the direction vector. The valid values are: 
+  * `dmu`: $(x_0, y_0)$
+  * `unit`: unit vector
+  * `mean`: mean values of each variable
+  * A user-specific vector of the same length as (`x`,`y`)
+  
+* `weights`: Only used when the `measure` is `WAM`. Valid values are: 
+  *`MIP`: Measure of Inefficiency Proportions 
+  *`RAM`: Range Adjusted Measure
+  *`BAM`: Bounded Adjusted Measure
+  *`normalized`: normalized weighted additive model
+  * A user-specific vector of the same length as (`x`,`y`)
+
+For this section, the previously created models are used. 
+
+Let's first see an example using the standard DEA and FDH techniques. For both techniques, all measures can be calculated. 
+
+```{r}
+x <- 1:3
+y <- 6
+efficiency(DEA_model, 
+           measure = "rad.in",
+           banks, x, y)
+```
+```{r}
+efficiency(FDH_model, 
+           measure = "WAM",
+           weights = "RAM",
+           banks, x, y)
+```
+
+In the case of the EATBoost algorithm, all measures can be calculated as well. 
+
+```{r}
+x <- 1:3
+y <- 4:5
+efficiency(EATboost_model_tuned, 
+           measure = "Russell.out",
+           heuristic = FALSE,
+           banks, x, y)
+```
+
+However, due to the extreme complexity at a computational level of the exact efficiency approach, the `heuristic` hyperparameter can be specified to resort to the simpler less time-consuming heuristic approach. In fact, `heuristic` is the default mode for `EATBoost`.
+
+```{r}
+efficiency(EATboost_model_tuned, 
+           measure = "Russell.out",
+           banks, x, y,
+           heuristic = TRUE)
+```
+
+Finally, for the MARSBoost algorithm, only the radial output measure can be calculated.
+
+```{r}
+efficiency(MARSBoost_model_tuned, "rad.out", banks, x, 6)
+```
+

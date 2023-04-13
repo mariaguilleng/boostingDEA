@@ -18,7 +18,6 @@
 #' iteration
 #'
 #' @importFrom stats predict
-#' @importFrom eat EAT
 #'
 #' @return A \code{EATBoost} object.
 #'
@@ -67,7 +66,8 @@ EATBoost <- function(data, x, y, num.iterations, num.leaves, learning.rate) {
   # ===========#
 
   # initial prediction
-  f0 <- matrix(rep(max(data[, y]), N), ncol = nY, nrow = nrow(data))
+  f0 <- matrix(rep(apply(as.data.frame(data[,y]), 2, max), N), ncol = nY,
+               nrow = nrow(data), byrow = TRUE)
   prediction <- f0
 
   # prediction at each iteratrion
@@ -135,7 +135,7 @@ EATBoost_object <- function(data, x, y, num.iterations, num.leaves,
       y = y,
       input_names = names(data)[x],
       output_names = names(data)[y],
-      row_names = rownames(data)
+      dmu_names = rownames(data)
     ),
     "control" = list(
       num.iterations = num.iterations,
@@ -143,8 +143,8 @@ EATBoost_object <- function(data, x, y, num.iterations, num.leaves,
       learning.rate = learning.rate
     ),
     "EAT.models" = EAT.models,
-    "f0" = f0,
-    "prediction" = prediction
+    "f0" = as.data.frame(f0),
+    "prediction" = as.data.frame(prediction)
   )
 
   class(EATBoost_object) <- "EATBoost"

@@ -97,6 +97,62 @@ predict.MARSAdapted <- function(object, newdata, x, class = 1, ...) {
 }
 
 
+#' @title Model Prediction for Efficiency Analysis Trees.
+#'
+#' @description This function predicts the expected output by an \code{EAT} object.
+#'
+#' @param object An \code{EAT} object.
+#' @param newdata \code{data.frame}. Set of input variables to predict on.
+#' @param x Inputs index.
+#' @param ... further arguments passed to or from other methods.
+#'
+#' @importFrom dplyr %>%
+#'
+#' @return \code{data.frame} with the predicted values.
+predict.EAT <- function(object, newdata, x, ...) {
+
+  if (!inherits(object, "EAT")){
+    stop(paste(deparse(substitute(object)), "must be an EAT object"))
+  }
+
+  train_names <- object[["data"]][["input_names"]]
+  test_names <- names(newdata)[x]
+
+  if (!identical(sort(train_names), sort(test_names))) {
+    stop("Different variable names in training set and test set.")
+  }
+
+  # Select variables and reorder as in training data
+  newdata <- newdata[, x, drop = FALSE][train_names]
+
+  y <- object[["data"]][["y"]]
+
+  tree <- object[["tree"]]
+
+  predictions <- c()
+
+  for(register in 1:nrow(newdata)){
+    ti <- 1
+
+    while (tree[[ti]][["SL"]] != -1) {
+      if (newdata[register, ][tree[[ti]][["xi"]]] < as.data.frame(tree[[ti]][["s"]])) {
+        ti <- posIdNode(tree, tree[[ti]][["SL"]])
+      } else {
+        ti <- posIdNode(tree, tree[[ti]][["SR"]])
+      }
+    }
+    predictions <- append(predictions, unlist(tree[[ti]][["y"]]))
+  }
+
+  predictions <- matrix(predictions, ncol = length(y), byrow = T) %>%
+    as.data.frame()
+
+  names(predictions) <- paste(object[["data"]][["output_names"]],"_pred", sep = "")
+
+  return(predictions)
+}
+
+
 #' @title Model Prediction for Boosted Multivariate Adaptive Frontier Splines
 #'
 #' @description This function predicts the expected output by a \code{MARSBoost}
@@ -181,15 +237,17 @@ predict.EATBoost <- function(object, newdata, x, ...) {
   f0 <- object[["f0"]]
 
   # Get predictions
-  predictions <- matrix(rep(f0[1,1],N),ncol = length(y), nrow = N)
+  init_pred <- as.numeric(as.vector(f0[1,]))
+  prediction <- matrix(rep(init_pred,N), ncol = length(y), nrow = N,
+                       byrow = TRUE)
 
   for (it in 1:length(EAT.models)) {
     model.q <- EAT.models[[it]]
     pred.q <- predict(model.q, newdata, x)
-    predictions <- predictions + learning.rate*pred.q
+    prediction <- prediction + learning.rate*pred.q
   }
 
-  return(predictions)
+  return(prediction)
 }
 
 
@@ -211,7 +269,8 @@ predict.EATBoost <- function(object, newdata, x, ...) {
 predict.DEA <- function(object, newdata, x, y, ...) {
   scores <- BBC_out(newdata, x, y, object[["data"]][["df"]],
                     object[["data"]][["x"]], object[["data"]][["y"]])
-  pred <- scores * newdata[, y]
+  pred <- as.data.frame(scores * object[["data"]][["df"]][1:nrow(newdata),object[["data"]][["y"]]])
+  names(pred) <- paste(object[["data"]][["output_names"]],"_pred", sep = "")
   return(pred)
 }
 
@@ -235,7 +294,8 @@ predict.FDH <- function(object, newdata, x, y, ...) {
   scores <- BBC_out(newdata, x, y, object[["data"]][["df"]],
                     object[["data"]][["x"]], object[["data"]][["y"]],
                     FDH = TRUE)
-  pred <- scores * newdata[, y]
+  pred <- as.data.frame(scores * object[["data"]][["df"]][1:nrow(newdata),object[["data"]][["y"]]])
+  names(pred) <- paste(object[["data"]][["output_names"]],"_pred", sep = "")
   return(pred)
 }
 

@@ -31,13 +31,13 @@ mse <- function(y, yPred) {
 #' @param Le \code{integer} Minimum number of observations before the first and
 #' after the final knot.
 #' @param linpreds \code{logical}. If \code{TRUE}, predictors can enter linearly
-#' @param err_min Minimun error in the split.
+#' @param err_min Minimum error in the split.
 #'
 #' @importFrom dplyr %>%
 #'
 #' @return A \code{list} containing the matrix of basis functions (\code{B}), a
 #' \code{list} of basis functions (\code{BF}), a \code{list} of selected knots
-#' (\code{knots_list}) and the minimun error (\code{err_min}).
+#' (\code{knots_list}) and the minimum error (\code{err_min}).
 AddBF <- function(data, x, y, ForwardModel, knots_list, Kp, minspan, Le,
                   linpreds, err_min) {
   N <- nrow(data)

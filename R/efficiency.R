@@ -30,13 +30,13 @@
 #' @return \code{matrix} with the the predicted score
 #'
 #' @export
-efficiency <- function(model, measure, data, x, y, heuristic = FALSE,
-                       direction.vector, weights) {
+efficiency <- function(model, measure = "rad.out", data, x, y, heuristic = TRUE,
+                       direction.vector = NULL, weights = NULL) {
 
   # parameter control
   valid_measures <- c("rad.out", "rad.in", "Russell.out", "Russell.in", "DDF",
                       "WAM", "ERG")
-  valid_models <- c("DEA", "FDH", "EATBoost") # TODO: MARSBoost
+  valid_models <- c("DEA", "FDH", "EATBoost", "MARSBoost")
   if (! measure %in% valid_measures) {
     stop("Measure not valid. Valid values for measure are: ", valid_measures)
   }
@@ -45,11 +45,28 @@ efficiency <- function(model, measure, data, x, y, heuristic = FALSE,
     stop("Model not valid. Valid classes for model are: ", valid_models)
   }
 
-  # Preprocess
-  data <- preProcess(data, x, y)
+  if (measure != "WAM" && !is.null(weights)) {
+    warning("Value of weights parameter will be ignored")
+  }
+  if (measure != "DDF" && !is.null(direction.vector)) {
+    warning("Value of direction.vector parameter will be ignored")
+  }
+
+  # MARSBoost
+  if (model_class == "MARSBoost"){
+    if (measure == "rad.out") {
+      score <- model$prediction / data[,y]
+      df <- as.data.frame(score, row.names = rownames(data))
+      colnames(df) <- c(paste(model_class, measure, sep = "."))
+      return(df)
+    } else {
+      stop("Measure not valid for MARSBoost model. Only valid measure is rad.out")
+    }
+  }
 
   # data used to create the model
-  fdh <- (model_class == "FDH" || model_class == "EATBoost")
+  fdh <- (model_class == "FDH" ||
+          (model_class == "EATBoost" && !measure %in% c("WAM", "ERG")))
   xOriginal <- model[["data"]][["x"]]
   yOriginal <- model[["data"]][["y"]]
   dataOriginal <- model[["data"]][["df"]]
@@ -59,7 +76,8 @@ efficiency <- function(model, measure, data, x, y, heuristic = FALSE,
     pred <- predict(model, dataOriginal, xOriginal)
     baseData <- cbind(dataOriginal[, xOriginal], pred)
   } else { # model_class == "EATBoost" && heuristic == FALSE
-    final_a <- as.data.frame(get.a.EATBoost(model))
+    cat("Calculating EATBoost", measure, "efficiency measure. This migth take a while...\n")
+    final_a <- get.a.EATBoost(model)
     colnames(final_a) <- model[["data"]][["input_names"]]
     pred_a <- predict(model, final_a, 1:ncol(final_a))
     baseData <- cbind(final_a, pred_a)
@@ -85,8 +103,13 @@ efficiency <- function(model, measure, data, x, y, heuristic = FALSE,
   }
 
   # return score
-  df <- as.data.frame(score, row.names = model[["data"]][["row_names"]])
-  colnames(df) <- c(paste(model_class, measure, sep = "."))
+  df <- as.data.frame(score, row.names = rownames(data))
+  if (model_class == "EATBoost" && heuristic) {
+    colnames(df) <- c(paste(model_class, "heu", measure, sep = "."))
+  } else {
+    colnames(df) <- c(paste(model_class, measure, sep = "."))
+  }
+
   return(df)
 }
 
@@ -150,17 +173,15 @@ get.b.trees <- function(EATBoost_model) {
 #' @description Calculates the intersection between two leave nodes from
 #' different trees of a \code{EATBoost} model.
 #'
-#' @param current_a Inferior corner of first leave support
-#' @param current_b Superior corner of first leave support
-#' @param new_a Inferior corner of second leave support
-#' @param new_b Superior corner of second leave support
+#' @param comb_a_actual Inferior corner of first leave support
+#' @param comb_b_actual Superior corner of first leave support
 #'
 #' @return \code{vector} with the intersection. \code{NULL} if intersection
 #' is not valid.
 #'
-get.intersection.a <- function(current_a, current_b, new_a, new_b) {
-  intersection_a <- pmax(current_a, new_a)
-  intersection_b <- pmin(current_b, new_b)
+get.intersection.a <- function(comb_a_actual, comb_b_actual) {
+  intersection_a <- apply(comb_a_actual, 2, max)
+  intersection_b <- apply(comb_b_actual, 2, min)
   if (sum(intersection_a < intersection_b) == length(intersection_a)) {
     return(intersection_a)
   }
@@ -174,51 +195,73 @@ get.intersection.a <- function(current_a, current_b, new_a, new_b) {
 #' @param EATBoost_model Model from class \code{EATBoost} from which the data
 #' are obtained
 #'
+#' @import utils
+#'
 #' @return \code{data.frame} with the leave supports
 #'
 get.a.EATBoost <- function(EATBoost_model) {
 
-  list_a <- get.a.trees(EATBoost_model)
-  list_b <- get.b.trees(EATBoost_model)
-
-  final_a = matrix(nrow = 0, ncol = length(EATBoost_model[["data"]][["x"]]))
-
+  nX <- length(EATBoost_model[["data"]][["x"]])
   num.iterations <- EATBoost_model[["control"]][["num.iterations"]]
   num.leaves <- EATBoost_model[["control"]][["num.leaves"]]
 
-  for (i in 1:(num.iterations-1)) {
+  # list_a : matrix of size num.iterations x num.leaves x nX
+  list_a <- get.a.trees(EATBoost_model)
+  # list_b : matrix of size num.iterations x num.leaves x nX
+  list_b <- get.b.trees(EATBoost_model)
 
-    # seleccionar a actual
-    for (j in 1:num.leaves) {
-      current_a <- list_a[[i]][j,]
-      current_b <- list_b[[i]][j,]
+  final_a = matrix(nrow = 0, ncol = nX)
 
-      # comparar con el resto de hojas en el mismo arbol
-      if (j < num.leaves) {
-        for (m in (j+1):num.leaves) {
-          new_a <-list_a[[i]][m,]
-          new_b <-list_b[[i]][m,]
-          #cat("--- comparando arbol", i, "nodo", j, "con arbol", i, "nodo", m, "\n")
-          intersection_a <- get.intersection.a(current_a, current_b, new_a, new_b)
-          final_a <- rbind(final_a, intersection_a)
-        }
-      }
+  # indices de la ultima combinacion posible
+  comb_index_max <- rep(num.leaves, num.iterations)
+  # indices de la combinacion actual
+  comb_index_actual <- rep(1, num.iterations)
 
-      # comparar con el resto de arboles
-      for (k in (i+1):num.iterations) {
-        for (m in 1:num.leaves) {
-          new_a <-list_a[[k]][m,]
-          new_b <-list_b[[k]][m,]
-          #cat("--- comparando arbol", i, "nodo", j, "con arbol", k, "nodo", m, "\n")
-          intersection_a <- get.intersection.a(current_a, current_b, new_a, new_b)
-          final_a <- rbind(final_a, intersection_a)
-        }
+  # progress bar
+  max.iterartions <- num.leaves^num.iterations
+  ii <- 0
+  pb <- txtProgressBar(min = 0, max = max.iterartions, style = 3)
+
+  # mientras que los indices de la actual no mayores que los de la ultima
+  repeat {
+
+    comb_a_actual <- matrix(nrow = 0, ncol = nX)
+    comb_b_actual <- matrix(nrow = 0, ncol = nX)
+
+    # hacer intersecciones
+    for (i in 1:num.iterations) {
+      comb_a_actual <- rbind(comb_a_actual, list_a[[i]][comb_index_actual[i],])
+      comb_b_actual <- rbind(comb_b_actual, list_b[[i]][comb_index_actual[i],])
+    }
+    a <- get.intersection.a(comb_a_actual, comb_b_actual)
+    final_a <- rbind(final_a, a)
+
+    # progress bar
+    ii = ii + 1
+    setTxtProgressBar(pb, ii)
+
+    # condicion de parada
+    if (sum(comb_index_actual) == sum(comb_index_max)) {
+      break
+    }
+
+    # actualizar indices
+    for (i in 1:num.iterations) {
+      comb_index_actual[i] = comb_index_actual[i]+1
+      if (comb_index_actual[i] <= comb_index_max[i]) {
+        break
+      } else {
+        comb_index_actual[i] = 1
       }
     }
+
   }
+  # progress bar
+  close(pb)
+
   final_a <- as.matrix(final_a[!duplicated(final_a),])
   rownames(final_a) <- NULL
-  return(final_a)
+  return(as.data.frame(final_a))
 }
 
 

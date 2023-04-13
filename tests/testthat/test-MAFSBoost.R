@@ -1,6 +1,6 @@
 # Setting scenario
 N <- 100
-simulated <- boostingdeaR::CobbDouglas(N = N, nX = 1)
+simulated <- boostingDEA::CobbDouglas(N = N, nX = 1)
 num.iterations <- 5
 num.terms <-  5
 learning.rate <- 0.5

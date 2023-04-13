@@ -23,7 +23,7 @@
 #' @importFrom stats predict
 #'
 #' @export
-MARSBoost <- function(data, x, y, num.iterations, learning.rate, num.terms) {
+MARSBoost <- function(data, x, y, num.iterations, num.terms, learning.rate) {
   if (!is.null(num.iterations) && num.iterations < 1) {
     stop("num.iterations = ", num.iterations,
          "not valid. Number of iterations must be greater than 1")
@@ -38,6 +38,9 @@ MARSBoost <- function(data, x, y, num.iterations, learning.rate, num.terms) {
           be greater than 3")
   }
 
+  if (length(y) != 1) {
+    stop("Number of output variables must be 1")
+  }
 
   # ===========#
   # VARIABLES #
@@ -116,7 +119,7 @@ MARSBoost <- function(data, x, y, num.iterations, learning.rate, num.terms) {
 #' @title Create a MARSBoost object
 #'
 #' @description This function saves information about the LS-Boosted
-#' Multivariate Adapative Frontier Splines model.
+#' Multivariate Adaptive Frontier Splines model.
 #'
 #' @name MARSBoost
 #'
@@ -151,7 +154,7 @@ MARSBoost_object <- function(data, x, y, num.iterations, learning.rate,
       y = y,
       input_names = names(data)[x],
       output_names = names(data)[y],
-      row_names = rownames(data)
+      dmu_names = rownames(data)
     ),
     "control" = list(
       num.terms = num.terms,

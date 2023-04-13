@@ -1,6 +1,5 @@
 library(ggplot2)
 library(compare)
-library(eat)
 library(MLmetrics)
 library(deaR)
 
@@ -28,7 +27,7 @@ ggplot(data) +
 # MAFSBoost
 # ==
 model_boost <- MARSBoost(data, x, y,
-                         num_iterarions, learning_rate, 5)
+                         num_iterarions, nterms, learning_rate)
 # without smoothin
 pred_boost <- predict(model_boost, data, x, class = 1)
 sum(pred_boost == model_boost$prediction) == N
@@ -70,16 +69,16 @@ MSE(pred_boost_smooth$y_pred, data$yD)
 # ==
 DEA_model <- DEA(data,x,y)
 pred_DEA <- predict(DEA_model, data, x, y)
-sum(pred_DEA == DEA_model$pred) == N
-MSE(pred_DEA, data$yD)
+sum(pred_DEA == DEA_model$prediction) == N
+MSE(pred_DEA$y_pred, data$yD)
 
 # ==
 # FDH
 # ==
 FDH_model <- FDH(data,x,y)
 pred_FDH <- predict(FDH_model, data, x, y)
-sum(pred_FDH == FDH_model$pred) == N
-MSE(pred_FDH, data$yD)
+sum(pred_FDH == FDH_model$prediction) == N
+MSE(pred_FDH$y_pred, data$yD)
 
 
 # ==
@@ -87,6 +86,8 @@ MSE(pred_FDH, data$yD)
 # ==
 eatboost_model <- EATBoost(data, x, y, num_iterarions, nterms, learning_rate)
 pred_eatboost <- predict(eatboost_model, data, x)
+MSE(eatboost_model$prediction$y_pred, data$yD)
+
 sum(eatboost_model$prediction == pred_eatboost) == N
 sum(eatboost_model$prediction == eatboost_model$f0) == N
 
@@ -101,14 +102,7 @@ model_boost_tuned <- EATBoost(data, x, y,
                               learning.rate = result[1, "learning.rate"],
                               num.leaves = result[1, "num.leaves"])
 pred_boost_tuned <- predict(model_boost_tuned, data, x)
-
-
-# =========
-# EAT
-# =========
-eat_model <- EAT(data, x, y)
-pred_eat <- predict(eat_model, data, x)
-MSE(pred_eat$y_pred, data$yD)
+MSE(pred_boost_tuned$y_pred, data$yD)
 
 
 # ==
@@ -119,9 +113,8 @@ dataplt <- data.frame(x = data$x1,
                       yD = data$yD,
                       pred_boost = pred_boost$y_pred,
                       pred_boost_smooth = pred_boost_smooth$y_pred,
-                      pred_dea = pred_DEA,
-                      pred_fdh = pred_FDH,
-                      pred_eat = pred_eat$y_pred,
+                      pred_dea = pred_DEA$y_pred,
+                      pred_fdh = pred_FDH$y_pred,
                       pred_eatboost = pred_eatboost$y_pred)
 
 ggplot(dataplt) +
@@ -131,7 +124,6 @@ ggplot(dataplt) +
   geom_line(aes(x = x, y = pred_boost_smooth, colour = 'Smooth')) +
   geom_line(aes(x = x, y = pred_dea, colour = 'DEA')) +
   geom_line(aes(x = x, y = pred_fdh, colour = 'FDH')) +
-  geom_line(aes(x = x, y = pred_eat, colour = 'EAT')) +
   geom_line(aes(x = x, y = pred_eatboost, colour = 'EATBoost'))
 
 
@@ -148,15 +140,36 @@ N <- nrow(banks)
 # Efficiency
 # ========
 DEA_model <- DEA(banks,x,y)
+
 FDH_model <- FDH(banks,x,y)
-EATBoost_model <- EATBoost(banks, x, y, num.iterations = 8, num.leaves = 8,
+
+EATBoost_model <- EATBoost(banks, x, y, num.iterations = 4, num.leaves = 4,
                            learning.rate = 0.6)
 
-# valid_measures <- c ("rad.out", "rad.in", "Russell.out","Russell.in", "DDF",
-#                      "WAM", "ERG")
-valid_measures <- c ("ERG")
+selected <- sample(1:N, N * 0.8) # Training indexes
+training <- banks[selected, ] # Training set
+test <- banks[- selected, ] # Test set
+result <- bestEATBoost(training, test, x, y,
+                        num.iterations = c(4,5,6),
+                        learning.rate = c(0.4, 0.5, 0.6),
+                        num.leaves = c(6,7,8,9))
+result[1,]
+model_boost_tuned <- MARSBoost(data, x, y,
+                               num.iterations = result[1, "num.iterations"],
+                               learning.rate = result[1, "learning.rate"],
+                               num.terms = result[1, "num.terms"])
+
+MARSBoost_model <- MARSBoost(banks, x, y, num.iterations = 4, num.terms = 4,
+                             learning.rate = 0.6)
+
+efficiency(MARSBoost_model, "rad.out", banks, x, 6)
+
+
+valid_measures <- c ("rad.out", "rad.in", "Russell.out","Russell.in", "DDF",
+                     "WAM", "ERG")
+#valid_measures <- c ("ERG")
 g <- "dmu"
-weights <- "RAM"
+weights <- "MIP"
 score <- data.frame(matrix(nrow = N, ncol = 0))
 
 for (m in valid_measures) {
@@ -186,9 +199,9 @@ data_DEA1 <- read_data(banks,
                        inputs = x,
                        outputs = y, dmus = NULL)
 result <- model_basic(data_DEA1,
-                      orientation = "io",
+                      orientation = "oo",
                       rts = "vrs")
-round(as.vector(efficiencies(result,)),4) == round(score$DEA.rad.in,4)
+round(as.vector(efficiencies(result,)),4) == round(score$DEA.rad.out,4)
 # check radial input
 data_DEA1 <- read_data(banks,
                        inputs = x,
@@ -201,6 +214,7 @@ round(as.vector(efficiencies(result,)),4) == round(score$DEA.rad.in,4)
 data_example <- read_data(banks,
                           inputs = x,
                           outputs = y, dmus = NULL)
+
 if (weights == "MIP") {
   additive <- model_additive(data_example, rts = "vrs",
                              weight_slack_i = 1 / data_example[["input"]],
@@ -273,3 +287,122 @@ if (weights == "MIP") {
 }
 
 
+
+selected <- sample(1:N, N * 0.8) # Training indexes
+training <- banks[selected, ] # Training set
+test <- banks[- selected, ] # Test set
+result <- bestEATBoost(training, test, x, y,
+                        num.iterations = c(6,7,8),
+                        learning.rate = c(0.4, 0.5, 0.6),
+                        num.leaves= c(6,7,8,9))
+result[1,]
+model_boost_tuned <- EATBoost(banks, x, y,
+                               num.iterations = result[1, "num.iterations"],
+                               learning.rate = result[1, "learning.rate"],
+                              num.leaves = result[1, "num.leaves"])
+valid_measures <- c ("rad.out", "rad.in", "Russell.out","Russell.in", "DDF",
+                     "WAM", "ERG")
+#valid_measures <- c ("ERG")
+g <- "dmu"
+weights <- "RAM"
+score <- data.frame(matrix(nrow = N, ncol = 0))
+
+for (m in valid_measures) {
+
+  # EATBooost real
+  score <- cbind(score, efficiency(model_boost_tuned, measure = m, banks, x, y,
+                                   heuristic = FALSE, direction.vector = g,
+                                   weights = weights))
+
+}
+score
+
+
+
+
+# =================
+# EXAMPLES PAPER
+# ================
+
+# DATA SET
+data(banks)
+x <- 1:3
+y <- 4:5
+input <- banks[,x]
+output <- banks[,y]
+
+
+# DEA
+x <- 1:3
+y <- 6
+DEA_model <- DEA(banks,x,y)
+
+#FDH
+x <- 1:3
+y <- 6
+FDH_model <- FDH(banks,x,y)
+
+# EATBoosting
+x <- 1:3
+y <- 4:5
+EATBoost_model <- EATBoost(banks, x, y,
+                           num.iterations = 4,
+                           num.leaves = 4,
+                           learning.rate = 0.6)
+
+# MARSBoosting
+x <- 1:3
+y <- 6
+MARSBoost_model <- MARSBoost(banks, x, y,
+                             num.iterations = 4,
+                             num.terms = 6,
+                             learning.rate = 0.6)
+
+# PREDICTIONS
+DEA_pred <- predict(DEA_model, head(banks), x)
+DEA_pred
+
+FDH_pred <- predict(FDH_model, head(banks), x)
+FDH_pred
+
+EATBoost_pred <- predict(EATBoost_model, head(banks), x)
+EATBoost_pred
+
+MARSBoost_smooth_pred <- predict(MARSBoost_model, head(banks),
+                                 x, class = 2)
+MARSBoost_smooth_pred
+
+# TUNING
+N <- nrow(banks)
+selected <- sample(1:N, N * 0.8) # Training indexes
+training <- banks[selected, ] # Training set
+test <- banks[- selected, ] # Test set
+
+grid_EATBoost <- bestEATBoost(training, test, x, y,
+                              num.iterations = c(5,6,7),
+                              learning.rate = c(0.4, 0.5, 0.6),
+                              num.leaves = c(6,7,8),
+                              verbose = FALSE)
+EATBoost_model_tuned <- EATBoost(banks, x, y,
+                                 num.iterations = grid_EATBoost[1,"num.iterations"],
+                                 learning.rate = grid_EATBoost[1,"learning.rate"],
+                                 num.leaves = grid_EATBoost[1,"num.leaves"])
+
+grid_MARSBoost <- bestMARSBoost(training, test, x, y,
+                                num.iterations = c(8,9,10,11,12),
+                                learning.rate = c(0.4, 0.5, 0.6),
+                                num.terms = c(6,7,8,9),
+                                verbose = FALSE)
+MARSBoost_model_tuned <- MARSBoost(banks, x, y,
+                                   num.iterations = grid_MARSBoost[1,"num.iterations"],
+                                   learning.rate = grid_MARSBoost[1,"learning.rate"],
+                                   num.terms = grid_MARSBoost[1,"num.terms"])
+
+
+A <- data.frame(
+  employee = c(2, 3, 3, 4, 5, 5, 6, 8),
+  sale = c(1, 3, 2, 3, 4, 2, 3, 5)
+)
+row.names(A) <- c("A", "B", "C", "D", "E","F","G","H")
+DEA_model <- DEA(A,1,2)
+efficiency(DEA_model, "rad.out", A, 1, 2)

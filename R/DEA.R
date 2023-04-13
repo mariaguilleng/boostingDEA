@@ -17,7 +17,9 @@
 DEA <- function(data, x, y) {
 
   scores <- BBC_out(data, x, y)
-  pred_DEA <- scores * data[, y]
+  pred_DEA <- scores * as.data.frame(data[,y], row.names = rownames(data))
+  names(pred_DEA) <- paste(colnames(data)[y], "_pred", sep = "")
+
 
   # DEA object
   DEA <- DEA_object(data, x, y, pred_DEA, scores)
@@ -50,10 +52,9 @@ DEA_object <- function(data, x, y, pred, score) {
       y = y,
       input_names = names(data)[x],
       output_names = names(data)[y],
-      row_names = rownames(data)
+      dmu_names = rownames(data)
     ),
-    "pred" = pred,
-    "score" = score
+    "prediction" = pred
   )
 
   class(DEA_object) <- "DEA"

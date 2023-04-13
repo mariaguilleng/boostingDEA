@@ -37,7 +37,7 @@ the model.}
 \item{d}{Generalized Cross Validation (GCV) penalty per knot. Default is
 \code{2}. If set to \code{-1}, \code{GCV = RSS / n}.}
 
-\item{err_red}{Minimun reduced error rate for the addition of two new basis
+\item{err_red}{Minimum reduced error rate for the addition of two new basis
 functions. Default is \code{0.01}.}
 
 \item{minspan}{Minimum number of observations between knots. When
@@ -54,12 +54,12 @@ Friedman's MARS paper section 3.8 with alpha = 0.05.}
 applying the forward algorithm without the smoothing procedures}
 
 \item{MARS.Forward.Smooth}{The Multivariate Adaptive Frontier Splines model
-after applying the forward algorithm after appling the smoothing procedure}
+after applying the forward algorithm after applying the smoothing procedure}
 }
 \value{
 A \code{MARSAdapted} object.
 }
 \description{
-This function saves information about the adapetd Multivariate
-Adapative Frontier Splines model.
+This function saves information about the adapted Multivariate
+Adaptive Frontier Splines model.
 }

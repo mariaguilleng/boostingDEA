@@ -20,11 +20,11 @@ CobbDouglas <- function(N, nX) {
 
   colnames <- c(paste("x", 1:nX, sep = ""), "y")
 
-  data <- matrix(
+  data <- as.data.frame(matrix(
     ncol = length(colnames),
     nrow = N,
     dimnames = list(NULL, colnames)
-  ) %>% as.data.frame()
+  ))
 
   for (x in 1:nX) {
     data[, x] <- runif(n = N, min = 0, max = 1)

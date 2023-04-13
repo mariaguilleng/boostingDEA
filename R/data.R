@@ -4,7 +4,7 @@
 #'
 #' @usage data(banks)
 #'
-#' @format \code{banks} is a da frame with 31 banks (rows) and 6 variables
+#' @format \code{banks} is a dataframe with 31 banks (rows) and 6 variables
 #' (outputs) named \code{Financial.funds} (deposits and borrowed funds in
 #' millions of TWD), \code{Labor} (number of employees),
 #' \code{Physical.capital} (net amount of fixed assets in millions of TWD),

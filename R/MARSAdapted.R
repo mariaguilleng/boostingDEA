@@ -103,7 +103,7 @@ MARSAdapted <- function(data, x, y, nterms, Kp = 1, d = 2, err_red = 0.01,
     knots_list <- B_BF_knots_err[[3]]
     New_err <- B_BF_knots_err[[4]]
 
-    # New minimun error
+    # New minimum error
     if (New_err < err * (1 - err_red)) {
       err <- New_err
     } else {
@@ -146,8 +146,8 @@ MARSAdapted <- function(data, x, y, nterms, Kp = 1, d = 2, err_red = 0.01,
 
 #' @title Create an MARSAdapted object
 #'
-#' @description This function saves information about the adapetd Multivariate
-#' Adapative Frontier Splines model.
+#' @description This function saves information about the adapted Multivariate
+#' Adaptive Frontier Splines model.
 #'
 #' @param data \code{data.frame} or \code{matrix} containing the variables in
 #' the model.
@@ -158,7 +158,7 @@ MARSAdapted <- function(data, x, y, nterms, Kp = 1, d = 2, err_red = 0.01,
 #' @param Kp Maximum degree of interaction allowed. Default is \code{1}.
 #' @param d Generalized Cross Validation (GCV) penalty per knot. Default is
 #' \code{2}. If set to \code{-1}, \code{GCV = RSS / n}.
-#' @param err_red Minimun reduced error rate for the addition of two new basis
+#' @param err_red Minimum reduced error rate for the addition of two new basis
 #' functions. Default is \code{0.01}.
 #' @param minspan Minimum number of observations between knots. When
 #' \code{minspan = 0} (default), it is calculated as in Friedman's MARS paper
@@ -170,7 +170,7 @@ MARSAdapted <- function(data, x, y, nterms, Kp = 1, d = 2, err_red = 0.01,
 #' @param MARS.Forward The Multivariate Adaptive Frontier Splines model after
 #' applying the forward algorithm without the smoothing procedures
 #' @param MARS.Forward.Smooth The Multivariate Adaptive Frontier Splines model
-#' after applying the forward algorithm after appling the smoothing procedure
+#' after applying the forward algorithm after applying the smoothing procedure
 #'
 #' @return A \code{MARSAdapted} object.
 MARSAdapted_object <- function(data, x, y, rownames, nterms, Kp, d, err_red,

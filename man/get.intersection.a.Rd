@@ -4,16 +4,12 @@
 \alias{get.intersection.a}
 \title{Get intersection between two leaves supports}
 \usage{
-get.intersection.a(current_a, current_b, new_a, new_b)
+get.intersection.a(comb_a_actual, comb_b_actual)
 }
 \arguments{
-\item{current_a}{Inferior corner of first leave support}
+\item{comb_a_actual}{Inferior corner of first leave support}
 
-\item{current_b}{Superior corner of first leave support}
-
-\item{new_a}{Inferior corner of second leave support}
-
-\item{new_b}{Superior corner of second leave support}
+\item{comb_b_actual}{Superior corner of first leave support}
 }
 \value{
 \code{vector} with the intersection. \code{NULL} if intersection

@@ -202,7 +202,7 @@ Russell_out <- function(data, x, y, dataOriginal = data,
       set.type(lps, 1:j + nY, "binary")
     }
     # Constrain 2.5 - phi_m >= 1
-    set.bounds(lps, columns = 1:nY, lower = rep(1,nY), upper = rep(Inf,nY))
+    set.bounds(lps, columns = 1:nY, lower = rep(1.0,nY), upper = rep(Inf,nY))
 
     solve(lps)
     scores[d, ] <- get.objective(lps)
@@ -280,7 +280,7 @@ Russell_in <- function(data, x, y, dataOriginal = data,
       set.type(lps, 1:j + nX, "binary")
     }
     # Constrain 2.5 -  0 <= phi_m <= 1
-    set.bounds(lps, columns = 1:nX, lower = rep(0,nX), upper = rep(1,nX))
+    set.bounds(lps, columns = 1:nX, lower = rep(0,nX), upper = rep(1.0,nX))
 
     solve(lps)
     scores[d, ] <- get.objective(lps)
@@ -311,6 +311,7 @@ Russell_in <- function(data, x, y, dataOriginal = data,
 #'
 #' @importFrom lpSolveAPI make.lp lp.control set.objfn add.constraint set.type
 #' set.bounds get.objective
+#' @importFrom methods is
 #'
 #' @return \code{matrix} with the the predicted score
 DDF <- function(data, x, y, dataOriginal = data,
@@ -325,7 +326,7 @@ DDF <- function(data, x, y, dataOriginal = data,
   if (is.null(direction.vector)) {
     stop("Direction vector g must be specified")
   }
-  if (class(direction.vector) == "numeric") {
+  if (is(direction.vector,"numeric")) {
     if (length(direction.vector) != length(x) + length(y)) {
       stop("Length of direction vector must be equal to the number of input and
            output variables")
@@ -420,6 +421,7 @@ DDF <- function(data, x, y, dataOriginal = data,
 #' @importFrom lpSolveAPI make.lp lp.control set.objfn add.constraint set.type
 #' set.bounds get.objective
 #' @importFrom stats sd
+#' @importFrom methods is
 #'
 #' @return \code{matrix} with the the predicted score
 WAM <- function(data, x, y, dataOriginal = data,
@@ -443,7 +445,7 @@ WAM <- function(data, x, y, dataOriginal = data,
   if (is.null(weights)) {
     stop("Weigths must be specified")
   }
-  if (class(weights) == "numeric") {
+  if (is(weights, "numeric")) {
     if (length(weights) != length(x) + length(y)) {
       stop("Length of direction vector must be equal to the number of input and
            output variables")
@@ -468,7 +470,7 @@ WAM <- function(data, x, y, dataOriginal = data,
 
     objVal <- matrix(ncol = nX + nY + j, nrow = 1)
 
-    if (class(weights) == "numeric") {
+    if (is(weights,"numeric")) {
       objVal[1:(nX + nY)] <- weights
     } else if (weights == "MIP") {
       objVal[1:(nX + nY)] <- c(1 / x_k[d, ], 1 / y_k[d, ])
@@ -519,7 +521,7 @@ WAM <- function(data, x, y, dataOriginal = data,
       set.type(lps, columns = 1:j + (nX + nY), type = c("binary"))
     }
 
-    solve(lps)
+    status <- solve(lps)
     scores[d, ] <- get.objective(lps)
   }
 
@@ -548,6 +550,8 @@ WAM <- function(data, x, y, dataOriginal = data,
 #' @return \code{matrix} with the the predicted score
 ERG <- function(data, x, y, dataOriginal = data,
                 xOriginal = x, yOriginal = y, FDH = FALSE) {
+
+  options(scipen=999)
 
   if (length(x) != length(xOriginal) || length(y) != length(yOriginal)) {
     stop("Size of inputs or outputs does not match original data sample")

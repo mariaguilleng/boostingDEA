@@ -38,10 +38,10 @@ iteration}
 }
 \value{
 A \code{data.frame} with the sets of hyperparameters and the root
-mean squared error (RMSE) and mean squere error (MSE) associated for each
+mean squared error (RMSE) and mean square error (MSE) associated for each
 model.
 }
 \description{
-This funcion computes the root mean squared error (RMSE) for a
+This function computes the root mean squared error (RMSE) for a
 set of EATBoost models built with a grid of given hyperparameters.
 }

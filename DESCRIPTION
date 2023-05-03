@@ -1,6 +1,6 @@
 Package: boostingDEA
 Type: Package
-Title: A boosting approach to Data Envolopment Analysis
+Title: A Boosting Approach to Data Envolopment Analysis
 Version: 0.1.0
 Authors@R: c(
     person(given = "Maria D.", 
@@ -13,18 +13,13 @@ Authors@R: c(
            role = c("aut"),
            email = "j.aparicio@umh.es",
            comment = c(ORCID = "0000-0002-0867-0004")),
-    person(given = "Miriam", 
-           family = "Esteve", 
-           role = c("aut"),
-           email = "mestevecampello@gmail.com",
-           comment = c(ORCID = "0000-0002-5908-0581")),
     person(given = "Víctor", 
            family = "España", 
            role = c("aut"),
            comment = c(ORCID = "0000-0002-1807-6180"))
            )
 Maintainer: Maria D. Guillen <maria.guilleng@umh.es>
-Description: This package includes functions to estimate production frontiers 
+Description: Includes functions to estimate production frontiers 
     and make ideal output predictions in the Data Envelopment Analysis (DEA) 
     context using the both standard models from DEA and Free Disposal Hull (FDH)
     and boosting techniques (EATBoosting and MARSBoosting). Moreover, the 

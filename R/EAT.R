@@ -243,8 +243,6 @@ EAT_object <- function(data, x, y, rownames, numStop, max.leaves, na.rm, tree) {
   atreeTk <- as.data.frame(do.call(cbind, atreeTk$a)) %>%
     t()
 
-  # y
-
   # all nodes
 
   effcy_levels <- nodes_frame %>%
@@ -273,6 +271,7 @@ EAT_object <- function(data, x, y, rownames, numStop, max.leaves, na.rm, tree) {
 
   nodes_frame[, output_names] <- effcy_levels
 
+  SL <- a <- E <- N <- id <- Proportion <- index <- R <- NULL
   nodes_frame <- nodes_frame %>%
     select(id, SL, N, Proportion, all_of(output_names), R, index)
 

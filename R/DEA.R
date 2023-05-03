@@ -28,7 +28,7 @@ DEA <- function(data, x, y) {
 }
 
 
-#' @title Create a DEA object
+#' @title Creates a DEA object
 #'
 #' @description This function saves information about the DEA model.
 #'

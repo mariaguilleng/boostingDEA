@@ -103,7 +103,7 @@ EATBoost <- function(data, x, y, num.iterations, num.leaves, learning.rate) {
 }
 
 
-#' @title Create a EATBoost object
+#' @title Creates a EATBoost object
 #'
 #' @description This function saves information about the EATBoost model
 #'

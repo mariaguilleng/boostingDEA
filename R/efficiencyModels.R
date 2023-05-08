@@ -551,8 +551,6 @@ WAM <- function(data, x, y, dataOriginal = data,
 ERG <- function(data, x, y, dataOriginal = data,
                 xOriginal = x, yOriginal = y, FDH = FALSE) {
 
-  options(scipen=999)
-
   if (length(x) != length(xOriginal) || length(y) != length(yOriginal)) {
     stop("Size of inputs or outputs does not match original data sample")
   }

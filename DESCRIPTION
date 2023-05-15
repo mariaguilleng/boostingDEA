@@ -26,9 +26,9 @@ Description: Includes functions to estimate production frontiers
     <doi:10.1016/j.eswa.2022.119134>) and MARSBoosting. Moreover, the package 
     includes code for estimating several technical efficiency measures using 
     different models such as the input and output-oriented radial measures, the
-    input and output-orientedRussell measures, the Directional Distance 
-    Function (DDF), the Weighted Additive Measure (WAM) and the Enhanced 
-    Russell Graph (ERG).
+    input and output-oriented Russell measures, the Directional Distance 
+    Function (DDF), the Weighted Additive Measure (WAM) and the Slacks-Based 
+    Measure (SBM).
 License: AGPL (>= 3)
 Encoding: UTF-8
 LazyData: true

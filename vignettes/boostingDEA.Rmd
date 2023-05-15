@@ -167,7 +167,7 @@ MARSBoost_model <- MARSBoost(banks, x, y,
 ```
 
 In this case, to find the best hyperparameters, we can resort to the ``bestMARSBoost`` function. Here, 
-we can create a grid of hypersparameters to find the optimal value for `num.iterations`, `learning.rate` and `num.terms`. 
+we can create a grid of hyperparameters to find the optimal value for `num.iterations`, `learning.rate` and `num.terms`. 
 
 ```{r bestMARSBoost}
 N <- nrow(banks)
@@ -209,7 +209,7 @@ The function `efficiency` calculates the efficiency score corresponding to the g
   * `Russell.in`: input-oriented Russell model 
   * `DDF`: Directional Distance Function model. The directional vector is specified in the argument `direction.vector`
   * `WAM`: Weight Additive Models
-  * `ERG`: Enhanced Russel Measure
+  * `ERG`: Slacks-Based Measure, which is mathematically equivalent to the Enhanced Russel Measure
 
 * `heuristic`: Only used if the `model` is `EATBoost`. This indicates whether the heuristic or the exact approach is used. This heuristic approach might be needed due to the extreme complexity at a computational level of the EATBoot exact efficiency approach.
 

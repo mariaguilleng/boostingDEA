@@ -30,7 +30,7 @@ CobbDouglas <- function(N, nX) {
     data[, x] <- runif(n = N, min = 0, max = 1)
   }
 
-  u <- rexp(n = N, rate = 1 / 3)
+  u <- rnorm(n = N, mean = 0, sd = 0.4)
 
   if (nX == 1) {
     y <- data[, "x1"]**0.5

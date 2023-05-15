@@ -8,7 +8,7 @@
 #' \code{4}, \code{5},\code{6}, \code{9}, \code{12} and \code{15}.
 #'
 #' @importFrom dplyr %>%
-#' @importFrom stats runif rexp
+#' @importFrom stats runif rexp rnorm
 #'
 #' @return \code{data.frame} with the simulated data.
 #'

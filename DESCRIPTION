@@ -1,6 +1,6 @@
 Package: boostingDEA
 Type: Package
-Title: A Boosting Approach to Data Envolopment Analysis
+Title: A Boosting Approach to Data Envelopment Analysis
 Version: 0.1.0
 Authors@R: c(
     person(given = "Maria D.", 
@@ -22,7 +22,7 @@ Maintainer: Maria D. Guillen <maria.guilleng@umh.es>
 Description: Includes functions to estimate production frontiers 
     and make ideal output predictions in the Data Envelopment Analysis (DEA) 
     context using both standard models from DEA and Free Disposal Hull (FDH)
-    and boosting techniques. In particular, EATBoosting (Guillen et. al, 2023 
+    and boosting techniques. In particular, EATBoosting (Guillen et al., 2023 
     <doi:10.1016/j.eswa.2022.119134>) and MARSBoosting. Moreover, the package 
     includes code for estimating several technical efficiency measures using 
     different models such as the input and output-oriented radial measures, the
